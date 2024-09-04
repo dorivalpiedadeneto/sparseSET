@@ -8,10 +8,8 @@ module sparseset
     implicit none
     
     ! Types of variables (hardcoded; user must change if needed)
-    integer, parameter::smip = 4 !integer precision for sparseSET library
-    integer, parameter::smlp = 8 !long integer precision for sparseSET library
-    integer, parameter::smsp = 4 !single precision real for sparseSET library
-    integer, parameter::smdp = 8 !double precision real for sparseSET library
+    integer, parameter::smip = 4 ! integer precision for sparseSET library
+    integer, parameter::smrp = 8 ! real precision in sparseSET library
     ! The defaults used for the library are: spip for integers, spdp for reals
 
     ! A line is used to store rows or columns of a sparse matrix
@@ -19,7 +17,7 @@ module sparseset
         integer(smip)::lsize = 0
         integer(smip)::lcount = 0
         integer(smip), dimension(:), allocatable::lindex
-        real(smdp), dimension(:), allocatable::lvalue
+        real(smrp), dimension(:), allocatable::lvalue
         integer(smip)::rpstage = 0
         logical::assembled=.false.
     end type line
@@ -53,24 +51,54 @@ module sparseset
     !             pushed, it is set to .false.
 
     type sparse_matrix
-        character(3)::mtype
-        logical::sym
+        character(3)::mtype = 'row'
+        logical::sym = .true.
+        integer(smip)::isize
+        integer(smip),dimension(16)::resize_policy = (\ &
+        0, 2, 0, 3, 0, -2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0\)
         integer(smip)::nlines
+        integer(smpi)::nrows
+        integer(smpi)::ncols
         type(lines), dimension(:), allocatable::line
     end type sparse_matrix
+
+    ! About sparse_matrix type
+    ! The sparse_matrix type is used to hold data in lines while the sparse
+    ! matrix is being assembled.
+    !
+    ! Variables in the sparse_matrix type
+    ! mtype - indicates if the lines represent rows ('row') or columns
+    ! ('col')
+    ! sym - indicates if the matrix os symmetric (.true.) or not (.false.)
+    ! resize_policy - an array of integers indicanting the policy to resize
+    ! the matrix; the integers in such a matrix have the following meaning
+    ! -> positive number - the size to reallocate the line, considering its
+    ! initial size. For instance, 2 indicates to resize to 2*isize (the initial
+    ! line size); 3 indites to resize to 3*isize, and so on.
+    ! -> zero - instead of reallocating, try to sum up equal terms without 
+    ! reallocating to find more space in the line
+    ! -> negative number - the size to reallocate the line, considering its
+    ! current size (ignoring the sign). For istance, -2 means: resize to
+    ! 2*current_line_size; -3 means: 3 * current_line_size
+    ! (It would be possible to use a more fancy data structure to represent
+    ! the policy; at least for now, lets use this simple and naive approach)
+    ! nlines - number of lines representing the sparse_matrix
+    ! nrows - number of rows in the sparse matrix
+    ! ncols - number of columns in the sparse matrix
+    ! line - an array of lines
 
     type CSC
         integer(smip)::msize
         integer(smip), dimension(:), allocatable::nz
         integer(smip), dimension(:), allocatable::row
-        integer(smdp), dimension(:), allocatable::mvalue
-    endtype CSC
+        integer(smrp), dimension(:), allocatable::mvalue
+    end type CSC
 
     type CSR
         integer(smip)::msize
         integer(smip), dimension(:), allocatable::nz
         integer(smip), dimension(:), allocatable::col
-        integer(smdp), dimension(:), allocatable::mvalue
+        integer(smrp), dimension(:), allocatable::mvalue
     end type CSR
 
     type triplet
@@ -78,7 +106,7 @@ module sparseset
         integer(smip), dimension(:), allocatable::nnz
         integer(smip), dimension(:), allocatable::row
         integer(smip), dimension(:), allocatable::col
-        integer(smdp), dimension(:), allocatable::mvalue
+        integer(smrp), dimension(:), allocatable::mvalue
     end type triplet
 
 end module sparseset
