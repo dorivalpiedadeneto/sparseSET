@@ -58,11 +58,10 @@ module sparseset
     !             pushed, it is set to .false.
 
     type sparse_matrix
-        character(3)::mtype = 'row'
-        logical::sym = .true.
+        character(3)::mtype
+        logical::sym
         integer(spip)::isize
-        integer(spip),dimension(16)::resize_policy = (\ &
-        2, 3, 4, 8, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0\)
+        integer(spip),dimension(:), allocatable::resize_policy
         integer(spip)::nlines
         integer(spip)::nrows
         integer(spip)::ncols
@@ -93,6 +92,19 @@ module sparseset
     ! nrows - number of rows in the sparse matrix
     ! ncols - number of columns in the sparse matrix
     ! line - an array of lines
+
+    ! A note on the resize policy:
+    ! Initially resize_policy was a fixed array with 16 positions:
+    !
+    !   integer(spip),dimension(16)::resize_policy = (\ &
+    !   2, 3, 4, 8, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0\)
+    !
+    ! The current approach is to set is as allocatable; if the
+    ! user doesn't define it when allocating the matrix (optional
+    ! parameter, adopt it as:
+    ! (\2, 3, 4, 8, 16, 0\)
+    ! (in this case for rp >= 6, always try to assemble; if the available space
+    ! is not sufficient, quit the program)
 
     type CSC
         integer(smip)::msize
