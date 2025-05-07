@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# vim swap file
+*.swp
+
+# Old files
+src/sparseSET_first_try.f90
