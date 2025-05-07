@@ -27,6 +27,7 @@ module sparseset
         real(spdp), dimension(:), allocatable::lvalue
         integer(spip)::rpstage = 0
         logical::assembled=.false.
+        integer(spip)::length
     end type sparse_line
 
     ! About the sparse_line type
@@ -56,6 +57,7 @@ module sparseset
     !             of the line; every time it is 'assembled',
     !             it is set to .true.; every time terms are
     !             pushed, it is set to .false.
+    ! length - the 'real' length of the row/column
 
     type sparse_matrix
         character(3)::mtype
@@ -127,6 +129,32 @@ module sparseset
         integer(smip), dimension(:), allocatable::col
         integer(smrp), dimension(:), allocatable::mvalue
     end type triplet
+
+    contains
+
+    subroutine allocate_sparse_line(sparse_line, line_size, length)
+        implicit none
+        type(sparse_line), intent(inout):: sparse_line
+        integer(spip), intent(in):: line_size
+        integer(spip), intent(in):: length
+        call deallocate_sparse_line(sparse_line)
+        sparse_line%lsize = line_size
+        sparse_line%length = length
+        allocate(sparse_line%lindex(line_size))
+        allocate(sparse_line%lvalue(line_size))
+    end subroutine allocate_sparse_line
+
+    subroutine deallocate_sparse_line(sparse_line)
+        implicit none
+        type(sparse_line), intent(inout):: sparse_line
+        if (allocated(sparse_line%lindex)) deallocate(sparse_line%lindex)
+        if (allocated(sparse_line%lvalue)) deallocate(sparse_line%lvalue)
+        sparse_line%lsize = 0
+        sparse_line%lcount = 0
+        sparse_line%rpstage = 0
+        sparse_line%assembled = .false.
+        sparse_line%length = 0
+    end subroutine deallocate_sparse_line
 
 end module sparseset
 
