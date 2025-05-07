@@ -109,51 +109,51 @@ module sparseset
     ! is not sufficient, quit the program)
 
     type CSC
-        integer(smip)::msize
-        integer(smip), dimension(:), allocatable::nz
-        integer(smip), dimension(:), allocatable::row
-        integer(smrp), dimension(:), allocatable::mvalue
+        integer(spip)::msize
+        integer(spip), dimension(:), allocatable::nz
+        integer(spip), dimension(:), allocatable::row
+        integer(spdp), dimension(:), allocatable::mvalue
     end type CSC
 
     type CSR
-        integer(smip)::msize
-        integer(smip), dimension(:), allocatable::nz
-        integer(smip), dimension(:), allocatable::col
-        integer(smrp), dimension(:), allocatable::mvalue
+        integer(spip)::msize
+        integer(spip), dimension(:), allocatable::nz
+        integer(spip), dimension(:), allocatable::col
+        integer(spdp), dimension(:), allocatable::mvalue
     end type CSR
 
     type triplet
-        integer(smip)::msize
-        integer(smip), dimension(:), allocatable::nnz
-        integer(smip), dimension(:), allocatable::row
-        integer(smip), dimension(:), allocatable::col
-        integer(smrp), dimension(:), allocatable::mvalue
+        integer(spip)::msize
+        integer(spip), dimension(:), allocatable::nnz
+        integer(spip), dimension(:), allocatable::row
+        integer(spip), dimension(:), allocatable::col
+        integer(spdp), dimension(:), allocatable::mvalue
     end type triplet
 
     contains
 
-    subroutine allocate_sparse_line(sparse_line, line_size, length)
+    subroutine allocate_sparse_line(sp_line, line_size, length)
         implicit none
-        type(sparse_line), intent(inout):: sparse_line
+        type(sparse_line), intent(inout):: sp_line
         integer(spip), intent(in):: line_size
         integer(spip), intent(in):: length
-        call deallocate_sparse_line(sparse_line)
-        sparse_line%lsize = line_size
-        sparse_line%length = length
-        allocate(sparse_line%lindex(line_size))
-        allocate(sparse_line%lvalue(line_size))
+        call deallocate_sparse_line(sp_line)
+        sp_line%lsize = line_size
+        sp_line%length = length
+        allocate(sp_line%lindex(line_size))
+        allocate(sp_line%lvalue(line_size))
     end subroutine allocate_sparse_line
 
-    subroutine deallocate_sparse_line(sparse_line)
+    subroutine deallocate_sparse_line(sp_line)
         implicit none
-        type(sparse_line), intent(inout):: sparse_line
-        if (allocated(sparse_line%lindex)) deallocate(sparse_line%lindex)
-        if (allocated(sparse_line%lvalue)) deallocate(sparse_line%lvalue)
-        sparse_line%lsize = 0
-        sparse_line%lcount = 0
-        sparse_line%rpstage = 0
-        sparse_line%assembled = .false.
-        sparse_line%length = 0
+        type(sparse_line), intent(inout):: sp_line
+        if (allocated(sp_line%lindex)) deallocate(sp_line%lindex)
+        if (allocated(sp_line%lvalue)) deallocate(sp_line%lvalue)
+        sp_line%lsize = 0
+        sp_line%lcount = 0
+        sp_line%rpstage = 0
+        sp_line%assembled = .false.
+        sp_line%length = 0
     end subroutine deallocate_sparse_line
 
 end module sparseset
