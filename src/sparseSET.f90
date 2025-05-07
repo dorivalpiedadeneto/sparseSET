@@ -8,29 +8,36 @@ module sparseset
     implicit none
     
     ! Types of variables (hardcoded; user must change if needed)
-    integer, parameter::smip = 4 ! integer precision for sparseSET library
-    integer, parameter::smrp = 8 ! real precision in sparseSET library
+    integer, parameter::spip = 4 ! integer precision for sparseSET library
+    integer, parameter::spdp = 8 ! real precision in sparseSET library
     ! The defaults used for the library are: spip for integers, spdp for reals
+    ! (the sp in the variables name is used to avoid naming conflicts - this  
+    !  library will be used by others, so it is better avoiding name conflicts)
+    !  ip 'stands' for integer precision, dp 'stands' for double precision of
+    !  floating point numbers
 
-    ! A line is used to store rows or columns of a sparse matrix
-    type line
-        integer(smip)::lsize = 0
-        integer(smip)::lcount = 0
-        integer(smip), dimension(:), allocatable::lindex
-        real(smrp), dimension(:), allocatable::lvalue
-        integer(smip)::rpstage = 0
+    ! Remark: we are using types and 'structured' programming instead of OOP
+    ! (so that it can be used in older compilers, that don't support OOP)
+
+    ! A sparse line is used to store rows or columns of a sparse matrix
+    type sparse_line
+        integer(spip)::lsize = 0
+        integer(spip)::lcount = 0
+        integer(spip), dimension(:), allocatable::lindex
+        real(spdp), dimension(:), allocatable::lvalue
+        integer(spip)::rpstage = 0
         logical::assembled=.false.
-    end type line
+    end type sparse_line
 
-    ! About the line type
-    ! Lines are data structures to hold rows or column data while the sparse
-    ! matrix is being assembled. Terms are pushed to the end, and when all 
-    ! contributions to the sparse matrix are done, them the terms are ordered
-    ! and terms of the same index are summed up.
+    ! About the sparse_line type
+    ! Sparse lines are data structures to hold rows or column data while a 
+    ! sparse matrix is being assembled. Terms are pushed to the end, and when
+    ! all  contributions to the sparse matrix are done, them the terms are 
+    ! ordered and terms of the same index are summed up.
     ! The line data (index and value) are stored in one dimensional arrays.
     ! The initial space allocated to store these values depend on the system
     ! of equation characteristics. In some cases, terms of same index are
-    ! pushed several times, resulting in excessive space usage e reallocation.
+    ! pushed several times, resulting in excessive space usage and reallocation.
     ! In these cases, sometimes a better approach is to sum all terms of same
     ! index to find more space in the line without reallocating.
     ! In short, to deal with all possible cenarios, the library defines a type
@@ -53,13 +60,13 @@ module sparseset
     type sparse_matrix
         character(3)::mtype = 'row'
         logical::sym = .true.
-        integer(smip)::isize
-        integer(smip),dimension(16)::resize_policy = (\ &
-        0, 2, 0, 3, 0, -2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0\)
-        integer(smip)::nlines
-        integer(smpi)::nrows
-        integer(smpi)::ncols
-        type(lines), dimension(:), allocatable::line
+        integer(spip)::isize
+        integer(spip),dimension(16)::resize_policy = (\ &
+        2, 3, 4, 8, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0\)
+        integer(spip)::nlines
+        integer(spip)::nrows
+        integer(spip)::ncols
+        type(sparse_line), dimension(:), allocatable::line
     end type sparse_matrix
 
     ! About sparse_matrix type
@@ -74,7 +81,7 @@ module sparseset
     ! the matrix; the integers in such a matrix have the following meaning
     ! -> positive number - the size to reallocate the line, considering its
     ! initial size. For instance, 2 indicates to resize to 2*isize (the initial
-    ! line size); 3 indites to resize to 3*isize, and so on.
+    ! line size); 3 indicates to resize to 3*isize, and so on.
     ! -> zero - instead of reallocating, try to sum up equal terms without 
     ! reallocating to find more space in the line
     ! -> negative number - the size to reallocate the line, considering its
