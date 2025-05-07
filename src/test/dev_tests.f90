@@ -1,7 +1,7 @@
 ! First tests (during development)
 
 module dev_tests
-    use sparse_set
+    use sparseset
     implicit none
 
 
@@ -13,5 +13,5 @@ contains
 
     end subroutine test_allocate_line
 
-module dev_tests
+end module dev_tests
 
