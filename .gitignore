@@ -36,3 +36,6 @@
 
 # Old files
 src/sparseSET_first_try.f90
+
+# bin folder
+bin/
