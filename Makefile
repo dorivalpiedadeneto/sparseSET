@@ -1,12 +1,11 @@
 FC = gfortran
-BINFLD = ./bin/
-SRCFLD = ./src/
-TSTFLD = $(SRCFLD)test/
+BINFLD = ./bin
+SRCFLD = ./src
+TSTFLD = $(SRCFLD)/test
 
 
 all:
-	$(MAKE) $(BINFLD)sparseset.mod
-	$(MAKE) $(BINFLD)dev_tests.mod
+	$(MAKE) $(BINFLD)/tests
 
 about:
 	@echo The fortran compiler to be used is $(FC)
@@ -14,20 +13,22 @@ about:
 	@echo The folder where the source files are is $(SRCFLD)
 	@echo The folder where the test files are is $(TSTFLD)
 
-$(BINFLD)sparseset.mod: $(SRCFLD)sparseSET.f90
+$(BINFLD)/sparseset.o: $(SRCFLD)/sparseSET.f90
 	@echo The sparse_set file is $< 
 	@echo The outputfile is $@
-	$(FC) -c $< -o $@
-
-$(BINFLD)dev_tests.mod: $(TSTFLD)dev_tests.f90 $(BINFLD)sparseset.mod
 	$(FC) -J$(BINFLD) -c $< -o $@
 
-clean-sparseset:
-	rm -rf $(BINFLD)sparseset.mod
+$(BINFLD)/dev_tests.o: $(TSTFLD)/dev_tests.f90 $(BINFLD)/sparseset.o
+	$(FC) -J$(BINFLD) -c $< -o $@
 
-clean-dev_tests:
-	rm -rf $(BINFLD)dev_tests.mod
+$(BINFLD)/tests: $(TSTFLD)/tests.f90 $(BINFLD)/dev_tests.o $(BINFLD)/sparseset.o
+	$(FC) -I$(BINFLD)  $^ -o $@
+
+
+run-test: $(BINFLD)/tests
+	@$<
 
 clean:
-	$(MAKE) clean-sparseset
-	$(MAKE) clean-dev_tests
+	rm -rf $(BINFLD)/*.mod
+	rm -rf $(BINFLD)/*.o
+	rm -rf $(BINFLD)/tests
