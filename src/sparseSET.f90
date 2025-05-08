@@ -132,11 +132,22 @@ module sparseset
 
     contains
 
-    subroutine allocate_sparse_line(sp_line, line_size, length)
+    subroutine allocate_sparse_line(sp_line, line_size, length, stat)
         implicit none
         type(sparse_line), intent(inout):: sp_line
         integer(spip), intent(in):: line_size
         integer(spip), intent(in):: length
+        integer(spip), intent(inout),optional:: stat
+        ! Testing if informed line_size and lenght are valid
+        if (present(stat)) then
+            if (.not.((line_size.gt.0).and.(length.gt.0).and.&
+                (line_size.le.length))) then
+                stat = -1
+                return
+            else
+                stat = 0
+            endif
+        endif
         call deallocate_sparse_line(sp_line)
         sp_line%lsize = line_size
         sp_line%length = length
