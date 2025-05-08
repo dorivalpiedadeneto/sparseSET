@@ -7,13 +7,13 @@ module dev_tests
 
 contains
 
-    subroutine test_allocate_line()
+    subroutine test_allocate_deallocate_line()
         implicit none
         type(sparse_line)::sp_line
         integer::tested = 0, right = 0
 
         call allocate_sparse_line(sp_line, 10, 100)
-        write(*,"(a)",advance="no")"Testing line allocation:"
+        write(*,"(a)",advance="no")"Testing line allocation (from scratch):"
         ! Testing if line size was correctly set
         tested = tested + 1
         if (sp_line%lsize.eq.10) right = right + 1
@@ -37,13 +37,66 @@ contains
         tested = tested + 1
         if (allocated(sp_line%lvalue).and.&
             (size(sp_line%lvalue).eq.10)) right = right + 1
-
-
         write(*,'(a,i2,a,i2,a)')" Passed [",right,"/",tested,"]"
-        
+        ! Now messing values and reallocating it
+        sp_line%lcount = 8
+        sp_line%rpstage = 3
+        sp_line%assembled = .true.
+        tested = 0; right = 0
+        call allocate_sparse_line(sp_line, 30, 300)
+        write(*,"(a)",advance="no")"Testing line allocation (reallocation):"
+        ! Testing if line size was correctly set
+        tested = tested + 1
+        if (sp_line%lsize.eq.30) right = right + 1
+        ! Testing if length was correctly set
+        tested = tested + 1
+        if (sp_line%length.eq.300) right = right + 1
+        ! Testing if lcount was correctly set to zero
+        tested = tested + 1
+        if (sp_line%lcount.eq.0) right = right + 1
+        ! Testing if rpstage was correctly set to zero
+        tested = tested + 1
+        if (sp_line%rpstage.eq.0) right = right + 1
+        ! Testing if assembed was correctly set to .false.
+        tested = tested + 1
+        if (.not.sp_line%assembled) right = right + 1
+        ! Testing if lindex was correcttly allocated
+        tested = tested + 1
+        if (allocated(sp_line%lindex).and.&
+            (size(sp_line%lindex).eq.30)) right = right + 1
+        ! Testing if lvalue was correcttly allocated
+        tested = tested + 1
+        if (allocated(sp_line%lvalue).and.&
+            (size(sp_line%lvalue).eq.30)) right = right + 1
+        write(*,'(a,i2,a,i2,a)')" Passed [",right,"/",tested,"]"
+        ! Testing deallocation
+        write(*,"(a)",advance="no")"Testing line deallocation:"
+        tested = 0; right = 0
+        call deallocate_sparse_line(sp_line)
+        ! Testing if line size was correctly set to zero
+        tested = tested + 1
+        if (sp_line%lsize.eq.0) right = right + 1
+        ! Testing if length was correctly set to zero
+        tested = tested + 1
+        if (sp_line%length.eq.0) right = right + 1
+        ! Testing if lcount was correctly set to zero
+        tested = tested + 1
+        if (sp_line%lcount.eq.0) right = right + 1
+        ! Testing if rpstage was correctly set to zero
+        tested = tested + 1
+        if (sp_line%rpstage.eq.0) right = right + 1
+        ! Testing if assembed was correctly set to .false.
+        tested = tested + 1
+        if (.not.sp_line%assembled) right = right + 1
+        ! Testing if lindex was correcttly deallocated
+        tested = tested + 1
+        if (.not.allocated(sp_line%lindex)) right = right + 1
+        ! Testing if lvalue was correcttly deallocated
+        tested = tested + 1
+        if (.not.allocated(sp_line%lvalue)) right = right + 1
+        write(*,'(a,i2,a,i2,a)')" Passed [",right,"/",tested,"]"
 
-
-    end subroutine test_allocate_line
+    end subroutine test_allocate_deallocate_line
 
 end module dev_tests
 
