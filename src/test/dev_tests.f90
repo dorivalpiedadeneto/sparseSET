@@ -10,7 +10,7 @@ contains
     subroutine test_allocate_deallocate_line()
         implicit none
         type(sparse_line)::sp_line
-        integer::tested = 0, right = 0
+        integer::tested = 0, right = 0, err_stat
 
         call allocate_sparse_line(sp_line, 10, 100)
         write(*,"(a)",advance="no")"Testing line allocation (from scratch):"
@@ -43,8 +43,11 @@ contains
         sp_line%rpstage = 3
         sp_line%assembled = .true.
         tested = 0; right = 0
-        call allocate_sparse_line(sp_line, 30, 300)
+        call allocate_sparse_line(sp_line, 30, 300, err_stat)
         write(*,"(a)",advance="no")"Testing line allocation (reallocation):"
+        ! Testing if stat is returning 0
+        tested = tested + 1
+        if (err_stat.eq.0) right = right + 1
         ! Testing if line size was correctly set
         tested = tested + 1
         if (sp_line%lsize.eq.30) right = right + 1
@@ -94,6 +97,27 @@ contains
         ! Testing if lvalue was correcttly deallocated
         tested = tested + 1
         if (.not.allocated(sp_line%lvalue)) right = right + 1
+        write(*,'(a,i2,a,i2,a)')" Passed [",right,"/",tested,"]"
+        ! Testing if the allocation subroutine can identify wrong parameters
+        write(*,"(a)",advance="no")"Testing attempts to use wrong parameters:"
+        tested = 0; right = 0
+        err_stat = 0
+        tested = tested + 1
+        call allocate_sparse_line(sp_line,-10,100, err_stat)
+        if (err_stat.eq.1) right = right + 1
+        err_stat = 0
+        tested = tested + 1
+        call allocate_sparse_line(sp_line,10,-100, err_stat)
+        if (err_stat.eq.1) right = right + 1
+        err_stat = 0
+        tested = tested + 1
+        call allocate_sparse_line(sp_line,-10,-100, err_stat)
+        if (err_stat.eq.1) right = right + 1
+        err_stat = 0
+        tested = tested + 1
+        call allocate_sparse_line(sp_line,0,100, err_stat)
+        if (err_stat.eq.1) right = right + 1
+
         write(*,'(a,i2,a,i2,a)')" Passed [",right,"/",tested,"]"
 
     end subroutine test_allocate_deallocate_line
