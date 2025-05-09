@@ -140,7 +140,7 @@ module sparseset
         integer(spip), intent(inout),optional:: stat
         ! Testing if informed line_size and lenght are valid
         if (present(stat)) then
-            if (.not.((line_size.gt.0).and.(length.gt.0)) then
+            if (.not.((line_size.gt.0).and.(length.gt.0))) then
                 stat = 1
                 return
             else
