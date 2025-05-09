@@ -154,6 +154,17 @@ module sparseset
         allocate(sp_line%lvalue(line_size))
     end subroutine allocate_sparse_line
 
+    ! About the allocate_sparse_line subroutine:
+    ! line_size is the size to be allocated in the sparse_line variables
+    ! lindex and lvalue. Length is the actual size of the line represented
+    ! by the sparse_line (row or column of a matriz, or even a vector).
+    ! While pushing terms, several duplicate terms occur in these arrays.
+    ! Therefore, line_size can be greater than length (to hold duplicates).
+    ! Both line_size and length must be greater than zero. The optional
+    ! parameter 'stat' returns 1 if one tries to use invalid values for them,
+    ! and returns 0 when they are suitable and it is possible to perform the
+    ! allocation.
+
     subroutine deallocate_sparse_line(sp_line)
         implicit none
         type(sparse_line), intent(inout):: sp_line
