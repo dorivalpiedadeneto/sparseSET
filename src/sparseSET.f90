@@ -61,7 +61,7 @@ module sparseset
 
     type sparse_matrix
         character(3)::mtype
-        logical::sym
+        character(5)::storage
         integer(spip)::isize
         integer(spip),dimension(:), allocatable::resize_policy
         integer(spip)::nlines
@@ -77,7 +77,8 @@ module sparseset
     ! Variables in the sparse_matrix type
     ! mtype - indicates if the lines represent rows ('row') or columns
     ! ('col')
-    ! sym - indicates if the matrix os symmetric (.true.) or not (.false.)
+    ! storage - indicates which parts of the matrix is stored: 'full', 'upper'
+    ! or 'lower'
     ! resize_policy - an array of integers indicanting the policy to resize
     ! the matrix; the integers in such a matrix have the following meaning
     ! -> positive number - the size to reallocate the line, considering its
