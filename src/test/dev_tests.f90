@@ -125,14 +125,25 @@ contains
     subroutine test_available_space()
         implicit none
         type(sparse_line)::sp_line
-        integer::tested = 0, right = 0, err_stat
-        tested = tested + 1
+        integer::tested = 0, right = 0, err_stat, i, num
         write(*,"(a)",advance="no")"Testing function to get available space in&
         a sparse line:"
-        call allocate_sparse_line(sp_line,10,100,err_stat)
+        num = 10
+        ! First 'test': allocation is OK!
+        tested = tested + 1
+        call allocate_sparse_line(sp_line,num,100,err_stat)
         if (err_stat.eq.0) right = right + 1
-        
-
+        ! First test: all terms are available to store values
+        tested = tested + 1
+        if (available_space(sp_line).eq.num) right = right + 1 
+        ! Test availabe space while pushing terms one by one
+        do i = 1,num
+            tested = tested + 1
+            sp_line%lcount = sp_line%lcount + 1
+            sp_line%lindex(i) = i
+            sp_line%lvalue(i) = dble(i)
+            if (available_space(sp_line).eq.(num-i)) right = right + 1 
+        enddo
         write(*,'(a,i2,a,i2,a)')" Passed [",right,"/",tested,"]"
 
     end subroutine test_available_space
