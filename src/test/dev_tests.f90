@@ -122,5 +122,26 @@ contains
 
     end subroutine test_allocate_deallocate_line
 
+    subroutine test_available_space()
+        implicit none
+        type(sparse_line)::sp_line
+        integer::tested = 0, right = 0, err_stat
+        tested = tested + 1
+        write(*,"(a)",advance="no")"Testing function to get available space in&
+        a sparse line:"
+        call allocate_sparse_line(sp_line,10,100,err_stat)
+        if (err_stat.eq.0) right = right + 1
+        
+
+        write(*,'(a,i2,a,i2,a)')" Passed [",right,"/",tested,"]"
+
+    end subroutine test_available_space
+
+    subroutine perform_all_dev_tests()
+        implicit none
+        call test_allocate_deallocate_line()
+        call test_available_space()
+    end subroutine perform_all_dev_tests
+
 end module dev_tests
 

@@ -2,7 +2,6 @@ program tests
     use dev_tests
     implicit none
 
-    call test_allocate_deallocate_line()
-
+    call perform_all_dev_tests()
 
 end program tests
