@@ -178,5 +178,13 @@ module sparseset
         sp_line%length = 0
     end subroutine deallocate_sparse_line
 
+    function available_space(sp_line) result(n)
+        implicit none
+        type(sparse_line),intent(in)::sp_line
+        integer(spip)::n
+        n = sp_line%lsize - sp_line%lcount
+        return
+    end function available_space
+
 end module sparseset
 
