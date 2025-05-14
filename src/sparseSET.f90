@@ -246,7 +246,7 @@ module sparseset
     
     subroutine clear_sparse_line(sp_line)
         implicit none
-        type(sparse_line), intent(inout)::
+        type(sparse_line), intent(inout)::sp_line
         ! Clear = reset all data in line keeping the allocated space
         sp_line%lcount = 0
         sp_line%assembled = .false.
