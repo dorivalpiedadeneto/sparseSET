@@ -200,12 +200,49 @@ module sparseset
                 return
             endif
         endif
+        ! if not present stat, test is not performed (the program will
+        ! crash if user tries to push when there is no space)
         sp_line%lcount = sp_line%lcount + 1
         sp_line%lindex(sp_line%lcount) = index
         sp_line%lvalue(sp_line%lcount) = value
-
     end subroutine push_term_to_line
 
+    subroutine push_terms_to_line(sp_line, indexes, values, stat)
+        implicit none
+        type(sparse_line), intent(inout):: sp_line
+        integer(spip), dimension(:), intent(in):: indexes
+        real(spdp), dimension(:), intent(in):: values
+        integer(spip), intent(out), optional::stat
+        integer(spip)::nt,av,sb
+        av = sp_line%lsize - sp_line%lcount
+        ! av - available space to push new terms
+        nt = size(indexes)
+        ! nt - number of terms to push
+        if (present(stat)) then
+            if (size(indexes).ne.size(values)) then
+                stat = 1
+                return
+            else
+                if (nt.gt.av) then
+                    stat = 1
+                    return
+                endif
+            endif
+            if (nt.gt.av) then
+                stat = 0
+            else
+                stat = 1
+                return
+            endif
+        endif
+        ! if not present stat, test is not performed (the program will
+        ! crash if user tries to push when there is no space)
+        sb = sp_line%lcount + 1
+        ! First position where terms will be pushed (slice begin)
+        sp_line%lindex(sb:sb+nt) = indexes
+        sp_line%lvalue(sb:sb+nt) = values
+        sp_line%lcount = sb + nt !slice begin + number of terms pushed
+    end subroutine push_terms_to_line
 
 end module sparseset
 
