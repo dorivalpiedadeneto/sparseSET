@@ -241,7 +241,7 @@ module sparseset
         ! First position where terms will be pushed (slice begin)
         sp_line%lindex(sb:sb+nt) = indexes
         sp_line%lvalue(sb:sb+nt) = values
-        sp_line%lcount = sb + nt !slice begin + number of terms pushed
+        sp_line%lcount = sp_line%lcount + nt !lcount + number of terms pushed
     end subroutine push_terms_to_line
     
     subroutine clear_sparse_line(sp_line)
