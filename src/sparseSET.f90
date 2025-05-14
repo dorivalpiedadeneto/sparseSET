@@ -186,5 +186,26 @@ module sparseset
         return
     end function available_space
 
+    subroutine push_term_to_line(sp_line, index, value, stat)
+        implicit none
+        type(sparse_line), intent(inout):: sp_line
+        integer(spip), intent(in):: index
+        real(spdp), intent(in):: value
+        integer(spip), intent(out), optional::stat
+        if (present(stat)) then
+            if ((sp_line%lsize - sp_line%lcount).gt.0) then
+                stat = 0
+            else
+                stat = 1
+                return
+            endif
+        endif
+        sp_line%lcount = sp_line%lcount + 1
+        sp_line%lindex(sp_line%lcount) = index
+        sp_line%lvalue(sp_line%lcount) = value
+
+    end subroutine push_term_to_line
+
+
 end module sparseset
 
