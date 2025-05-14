@@ -243,6 +243,14 @@ module sparseset
         sp_line%lvalue(sb:sb+nt) = values
         sp_line%lcount = sb + nt !slice begin + number of terms pushed
     end subroutine push_terms_to_line
+    
+    subroutine clear_sparse_line(sp_line)
+        implicit none
+        type(sparse_line), intent(inout)::
+        ! Clear = reset all data in line keeping the allocated space
+        sp_line%lcount = 0
+        sp_line%assembled = .false.
+    end subroutine clear_sparse_line
 
 end module sparseset
 
