@@ -229,10 +229,10 @@ module sparseset
                 endif
             endif
             if (nt.gt.av) then
-                stat = 0
-            else
                 stat = 1
                 return
+            else
+                stat = 0
             endif
         endif
         ! if not present stat, test is not performed (the program will
