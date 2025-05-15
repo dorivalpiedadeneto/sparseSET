@@ -252,5 +252,28 @@ module sparseset
         sp_line%assembled = .false.
     end subroutine clear_sparse_line
 
+    subroutine copy_sparse_line_terms(origin, destination, stat)
+        implicit none
+        type(sparse_line), intent(in):: origin
+        type(sparse_line), intent(inout):: destination
+        integer(spip), intent(out), optional:: stat
+        integer(spip)::lcount
+        if (present(stat)) then
+            if (destination%lsize.lt.origin%lcount) then
+                stat = 1
+                return
+            else
+                stat = 0
+            endif
+        endif
+        ! If stat is not present and space is insufficient,
+        ! the program will crash)
+        lcount = origin%lcount
+        destination%lcount = origin%lcount
+        destination%lindex(1:lcount) = origin%lindex(1:lcount)
+        destination%lvalue(1:lcount) = origin%lvalue(1:lcount)
+        destination%assembled = origin%assembled
+    end subroutine copy_sparse_line_terms
+
 end module sparseset
 
