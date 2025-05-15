@@ -235,6 +235,13 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_pushing_to_line
 
+    subroutine test_copy_line_terms()
+        implicit none
+        type(sparse_line):: oline, dline ! origin and destination lines
+        integer:: correct, tested, err_stat
+
+    end subroutine test_copy_line_terms
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
