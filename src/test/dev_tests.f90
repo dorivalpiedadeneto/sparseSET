@@ -239,6 +239,19 @@ contains
         implicit none
         type(sparse_line):: oline, dline ! origin and destination lines
         integer:: correct, tested, err_stat
+        write(*,"(a)",advance="no")"Testing copy_line_terms sub:"
+        tested = 0; correct = 0
+        call allocate_sparse_line(oline,10,20)
+        call allocate_sparse_line(dline,5,10)
+        call push_terms_to_line(oline,(/1, 2, 3, 4, 5, 6/),&
+        (/1.0_spdp, 1.0_spdp, 1.0_spdp, 1.0_spdp, 1.0_spdp, 1.0_spdp/))
+        ! Test if copy_line status identify error
+        err_stat = 0
+        call copy_sparse_line_terms(oline, dline, err_stat)
+        tested = tested + 1
+        if (err_stat.eq.1) correct = correct + 1
+
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
 
     end subroutine test_copy_line_terms
 
@@ -247,6 +260,7 @@ contains
         call test_allocate_deallocate_line()
         call test_available_space()
         call test_pushing_to_line()
+        call test_copy_line_terms()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
