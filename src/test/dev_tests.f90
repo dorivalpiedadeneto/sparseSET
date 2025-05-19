@@ -238,7 +238,7 @@ contains
     subroutine test_copy_line_terms()
         implicit none
         type(sparse_line):: oline, dline ! origin and destination lines
-        integer:: correct, tested, err_stat
+        integer:: correct, tested, err_stat, i
         write(*,"(a)",advance="no")"Testing copy_line_terms sub:"
         tested = 0; correct = 0
         call allocate_sparse_line(oline,10,20)
@@ -250,9 +250,32 @@ contains
         call copy_sparse_line_terms(oline, dline, err_stat)
         tested = tested + 1
         if (err_stat.eq.1) correct = correct + 1
+        ! Test if clear data is working
+        ! Are lcount correct before clear?
+        tested = tested + 1
+        if (oline%lcount.eq.6) correct = correct + 1
+        tested = tested + 1
+        call clear_sparse_line(oline)
+        if (oline%lcount.eq.0) correct = correct + 1
+        ! Now the original line will have a legth so that it can
+        ! be copied to dline
+        call push_terms_to_line(oline,(/1, 2, 3, 4, 5/),&
+        (/1.0_spdp, 1.0_spdp, 1.0_spdp, 1.0_spdp, 1.0_spdp/))
+        ! Test if copy_line status error i zero now
+        err_stat = 1
+        call copy_sparse_line_terms(oline, dline, err_stat)
+        tested = tested + 1
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (dline%lcount.eq.5) correct = correct + 1
+        do i = 1, oline%lcount
+            tested = tested + 1
+            if (oline%lindex(i).eq.dline%lindex(i)) correct = correct + 1
+            tested = tested + 1
+            if (oline%lvalue(i).eq.dline%lvalue(i)) correct = correct + 1
+        enddo
 
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
-
     end subroutine test_copy_line_terms
 
     subroutine perform_all_dev_tests()
