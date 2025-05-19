@@ -11,3 +11,10 @@ that the best approach is to have a variable to hold one of the three options:
 'full', 'upper', 'lower'. Maybe a good name for this variable is 'storage'.
 This, together with mtype variable may be a good way to deal with the 
 sparse\_matrix storage logic. 
+
+## 2025/05/19
+
+Probably the best algorithm to be used for sorting will be mergesort
+https://stackoverflow.com/questions/53269004/heap-sort-vs-merge-sort-in-speed
+(O(n.logn), but probably faster due to caching)
+
