@@ -275,5 +275,18 @@ module sparseset
         destination%assembled = origin%assembled
     end subroutine copy_sparse_line_terms
 
+    subroutine sorted_indexes(indexes, sorted, stat)
+        implicit none
+        integer(spip), dimension(:), intent(in):: indexes
+        integer(spip), dimension(:), intent(out):: sorted
+        integer(spip), intent(out), optional:: stat
+        ! Variables (used for performing quicksort *1)
+
+    end subroutine sorted_indexes
+        ! *1: Based on the implementation presented in 
+        ! Numerical recipes in Fortran 90: The art of
+        ! parallel scientific computing (ISBN 0-521-57439-0)
+        ! (page 1169-1170)
+
 end module sparseset
 
