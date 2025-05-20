@@ -18,3 +18,16 @@ Probably the best algorithm to be used for sorting will be mergesort
 https://stackoverflow.com/questions/53269004/heap-sort-vs-merge-sort-in-speed
 (O(n.logn), but probably faster due to caching)
 
+## 2025/05/20
+
+After reading more about the sorting methods, probably the best choice
+is the quicksort algorithm. A good implementation is available in Numerical
+recipes in Fortran 90 (it is necessary to adapt some things, but this
+implementation also deal with the issue of the worst case efficiency
+(according to the volume I versio, Numerical Recipes in Fortran 77).
+
+Considering n=600 (probably one of the largests cases for a sparse line
+in normal cases.
+Merge sort: time efficiency -> O(n log_2(n)) -> aprox. 5537 operations
+Quick sort: time efficiency -> O(n log_10(n)) -> aprox. 1667 operations
+
