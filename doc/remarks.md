@@ -27,7 +27,66 @@ implementation also deal with the issue of the worst case efficiency
 (according to the volume I versio, Numerical Recipes in Fortran 77).
 
 Considering n=600 (probably one of the largests cases for a sparse line
-in normal cases.
+in normal cases.)
 Merge sort: time efficiency -> O(n log_2(n)) -> aprox. 5537 operations
 Quick sort: time efficiency -> O(n log_10(n)) -> aprox. 1667 operations
+
+## 2025/05/21
+
+The sorting subroutine will be coded to return an array of integers
+representing the position the index should be moved such that they would be
+in ascending order. For doing this, an array with integers, ranging from
+1 to n (n being the number of indexes in the array) is necessary.
+
+Considering this array from 1 to n will be necessary several times (each
+time the sorting is necessary), we tested how much time would be necessary
+for creating this '1 to n' array (comparing the time necessary to copy it
+from a global variable previously created, for instace).
+
+A test for evaluating this time difference was coded in the ptest.f90 file.
+The results indicate that it does not make a significant difference between
+creating it from scratch each time or copying it from the global array.
+
+The results we found:
+
+$ make run-ptest
+gfortran -O2 src/test/ptests.f90 -o bin/ptests
+For an index array of size  100
+ - Time to create index array (1000 times):    0.00001000 seconds
+ - Time to copy index array (1000 times):      0.00002300 seconds
+For an index array of size  200
+ - Time to create index array (1000 times):    0.00002700 seconds
+ - Time to copy index array (1000 times):      0.00000900 seconds
+For an index array of size  300
+ - Time to create index array (1000 times):    0.00005300 seconds
+ - Time to copy index array (1000 times):      0.00001900 seconds
+For an index array of size  400
+ - Time to create index array (1000 times):    0.00005200 seconds
+ - Time to copy index array (1000 times):      0.00002000 seconds
+For an index array of size  500
+ - Time to create index array (1000 times):    0.00003600 seconds
+ - Time to copy index array (1000 times):      0.00001900 seconds
+For an index array of size  600
+ - Time to create index array (1000 times):    0.00002000 seconds
+ - Time to copy index array (1000 times):      0.00001900 seconds
+For an index array of size  700
+ - Time to create index array (1000 times):    0.00002000 seconds
+ - Time to copy index array (1000 times):      0.00002000 seconds
+For an index array of size  800
+ - Time to create index array (1000 times):    0.00001900 seconds
+ - Time to copy index array (1000 times):      0.00002000 seconds
+For an index array of size  900
+ - Time to create index array (1000 times):    0.00001900 seconds
+ - Time to copy index array (1000 times):      0.00001900 seconds
+For an index array of size 1000
+ - Time to create index array (1000 times):    0.00002000 seconds
+ - Time to copy index array (1000 times):      0.00001900 seconds
+
+Even though for small matrices there is some difference, it is not
+signficant (at least for this computer in which we performed the
+tests). (Notice that for no optimization, i.e., using the -O0
+option in gfortran, there is a greater difference. However, if one
+uses no optimization, probably performance is not something in
+such a situation).
+
 
