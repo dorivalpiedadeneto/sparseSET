@@ -2,7 +2,7 @@ FC = gfortran
 BINFLD = ./bin
 SRCFLD = ./src
 TSTFLD = $(SRCFLD)/test
-
+OPTFLAG = -O2
 
 all:
 	$(MAKE) $(BINFLD)/tests
@@ -25,7 +25,7 @@ $(BINFLD)/tests: $(TSTFLD)/tests.f90 $(BINFLD)/dev_tests.o $(BINFLD)/sparseset.o
 	$(FC) -I$(BINFLD)  $^ -o $@
 
 $(BINFLD)/ptests: $(TSTFLD)/ptests.f90
-	$(FC) -O2 $< -o $@
+	$(FC) $(OPTFLAG) $< -o $@
 
 run-ptest: $(BINFLD)/ptests
 	@$<
