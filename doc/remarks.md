@@ -98,7 +98,7 @@ Even though for small matrices there is some difference, it is not
 signficant (at least for this computer in which we performed the
 tests). (Notice that for no optimization, i.e., using the -O0
 option in gfortran, there is a greater difference. However, if one
-uses no optimization, probably performance is not something in
-such a situation).
+uses no optimization, probably performance is not something relevant
+in such a situation).
 
 
