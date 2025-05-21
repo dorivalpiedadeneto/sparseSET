@@ -24,6 +24,11 @@ $(BINFLD)/dev_tests.o: $(TSTFLD)/dev_tests.f90 $(BINFLD)/sparseset.o
 $(BINFLD)/tests: $(TSTFLD)/tests.f90 $(BINFLD)/dev_tests.o $(BINFLD)/sparseset.o
 	$(FC) -I$(BINFLD)  $^ -o $@
 
+$(BINFLD)/ptests: $(TSTFLD)/ptests.f90
+	$(FC) -O2 $< -o $@
+
+run-ptest: $(BINFLD)/ptests
+	@$<
 
 run-test: $(BINFLD)/tests
 	@$<
@@ -32,3 +37,4 @@ clean:
 	rm -rf $(BINFLD)/*.mod
 	rm -rf $(BINFLD)/*.o
 	rm -rf $(BINFLD)/tests
+	rm -rf $(BINFLD)/ptests
