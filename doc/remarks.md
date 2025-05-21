@@ -49,38 +49,50 @@ creating it from scratch each time or copying it from the global array.
 
 The results we found:
 
+```
 $ make run-ptest
 gfortran -O2 src/test/ptests.f90 -o bin/ptests
+
 For an index array of size  100
  - Time to create index array (1000 times):    0.00001000 seconds
  - Time to copy index array (1000 times):      0.00002300 seconds
+
 For an index array of size  200
  - Time to create index array (1000 times):    0.00002700 seconds
  - Time to copy index array (1000 times):      0.00000900 seconds
+
 For an index array of size  300
  - Time to create index array (1000 times):    0.00005300 seconds
  - Time to copy index array (1000 times):      0.00001900 seconds
+
 For an index array of size  400
  - Time to create index array (1000 times):    0.00005200 seconds
  - Time to copy index array (1000 times):      0.00002000 seconds
+
 For an index array of size  500
  - Time to create index array (1000 times):    0.00003600 seconds
  - Time to copy index array (1000 times):      0.00001900 seconds
+
 For an index array of size  600
  - Time to create index array (1000 times):    0.00002000 seconds
  - Time to copy index array (1000 times):      0.00001900 seconds
+
 For an index array of size  700
  - Time to create index array (1000 times):    0.00002000 seconds
  - Time to copy index array (1000 times):      0.00002000 seconds
+
 For an index array of size  800
  - Time to create index array (1000 times):    0.00001900 seconds
  - Time to copy index array (1000 times):      0.00002000 seconds
+
 For an index array of size  900
  - Time to create index array (1000 times):    0.00001900 seconds
  - Time to copy index array (1000 times):      0.00001900 seconds
-For an index array of size 1000
+
+For an index array of size 1000*
  - Time to create index array (1000 times):    0.00002000 seconds
  - Time to copy index array (1000 times):      0.00001900 seconds
+```
 
 Even though for small matrices there is some difference, it is not
 signficant (at least for this computer in which we performed the
