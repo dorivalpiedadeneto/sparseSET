@@ -278,12 +278,22 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_copy_line_terms
 
+    subroutine test_quicksort()
+        implicit none
+        integer(spip),dimension(5)::in_arr, out_arr
+        in_arr = (/5,4,3,2,1/)
+        out_arr = sorted_indexes(in_arr)
+        write(*,*)out_arr
+
+    end subroutine test_quicksort
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
         call test_available_space()
         call test_pushing_to_line()
         call test_copy_line_terms()
+        call test_quicksort()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
