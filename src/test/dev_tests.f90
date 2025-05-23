@@ -280,11 +280,52 @@ contains
 
     subroutine test_quicksort()
         implicit none
-        integer(spip),dimension(5)::in_arr, out_arr
-        in_arr = (/5,4,3,2,1/)
+        integer(spip), dimension(:), allocatable::in_arr, out_arr, exp_arr
+        integer(spip)::tested, correct, i
+        write(*,"(a)",advance="no")"Testing sorting function:"
+        tested = 0
+        correct = 0
+        allocate(in_arr(5), out_arr(5), exp_arr(5))
+        ! Reverse order, 5 terms
+        in_arr = (/5, 4, 3, 2, 1/)
+        exp_arr = (/5, 4, 3, 2, 1/)
         out_arr = sorted_indexes(in_arr)
+        tested = tested + 1
+        ! Already sorted, 5 terms
+        if (all(exp_arr.eq.out_arr)) correct = correct + 1
+        in_arr = (/1, 2, 3, 4, 5/)
+        exp_arr = (/1, 2, 3, 4, 5/)
+        out_arr = sorted_indexes(in_arr)
+        tested = tested + 1
+        if (all(exp_arr.eq.out_arr)) correct = correct + 1
+        !  5 terms, no repeted value
+        in_arr = (/3, 2, 5, 1, 4/)
+        exp_arr = (/4, 2, 1, 5, 3/)
+        out_arr = sorted_indexes(in_arr)
+        tested = tested + 1
+        if (all(exp_arr.eq.out_arr)) correct = correct + 1
+        ! 5 terms with repetition
+        in_arr = (/3, 5, 5, 1, 5/)
+        exp_arr = (/4, 1, 2, 3, 5/)
+        out_arr = sorted_indexes(in_arr)
+        tested = tested + 1
+        if (all(exp_arr.eq.out_arr)) correct = correct + 1
+        ! Reverse order, 100 terms
+        deallocate(in_arr, out_arr, exp_arr)
+        allocate(in_arr(100), out_arr(100), exp_arr(100))
+        do i=1,100
+            in_arr(i) = 101 - i
+            exp_arr(i) = 101 - i
+        enddo
+        out_arr = sorted_indexes(in_arr)
+        tested = tested + 1
+        if (all(exp_arr.eq.out_arr)) correct = correct + 1
+        write(*,*)in_arr
         write(*,*)out_arr
+        write(*,*)exp_arr
+        write(*,*)(out_arr.eq.exp_arr)
 
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_quicksort
 
     subroutine perform_all_dev_tests()
