@@ -380,11 +380,11 @@ module sparseset
                 jstack = jstack + 2
                 ! Push pointers to large subarray on stack; process smaller
                 ! subarray immediately
-                if (jstack > NSTACK) then   !NSTACK is too small
+                if (jstack.gt. NSTACK) then   !NSTACK is too small
                     sorted = -1 ! return with error
                     return
                 endif
-                if (r-i+1.ge.j-l) then
+                if ((r-i+1).ge.(j-l)) then
                     istack(jstack) = r
                     istack(jstack-1) = i
                     r = j - 1
