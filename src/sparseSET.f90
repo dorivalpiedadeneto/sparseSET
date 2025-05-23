@@ -384,7 +384,7 @@ module sparseset
                     sorted = -1 ! return with error
                     return
                 endif
-                if (r-i+1.ge.j-1) then
+                if (r-i+1.ge.j-l) then
                     istack(jstack) = r
                     istack(jstack-1) = i
                     r = j - 1
