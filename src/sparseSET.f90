@@ -328,7 +328,7 @@ module sparseset
                     ia = inds(l)
                     sa = sorted(l)
                     inds(l) = inds(r)
-                    sorted(l) = inds(r)
+                    sorted(l) = sorted(r)
                     inds(r) = ia
                     sorted(r) = sa
                 endif
@@ -337,7 +337,7 @@ module sparseset
                     ia = inds(l+1)
                     sa = sorted(l+1)
                     inds(l+1) = inds(r)
-                    sorted(l+1) = inds(r)
+                    sorted(l+1) = sorted(r)
                     inds(r) = ia
                     sorted(r) = sa
                 endif
@@ -346,7 +346,7 @@ module sparseset
                     ia = inds(l)
                     sa = sorted(l)
                     inds(l) = inds(l+1)
-                    sorted(l) = inds(+1)
+                    sorted(l) = sorted(l+1)
                     inds(l+1) = ia
                     sorted(l+1) = sa
                 endif
