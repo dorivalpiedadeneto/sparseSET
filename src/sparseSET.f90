@@ -296,12 +296,12 @@ module sparseset
         l = 1
         r = n
         do ! outer loop
-            if (r-l < NN) then ! Insertion sort when subarray is small enough
+            if (r-l.lt.NN) then ! Insertion sort when subarray is small enough
                 do j = l+1, r
                     ia = inds(j)
                     sa = sorted(j)
                     do i = j-1, l, -1
-                        if (inds(i) <= ia) exit
+                        if (inds(i).le.ia) exit
                         inds(i+1) = inds(i)
                         sorted(i+1) = sorted(i)
                     enddo
