@@ -108,6 +108,135 @@ program ptest
         pivotIndex = i + 1
     end subroutine partition_indices
 
+    ! Corrected NR version of quicksort
+    function sorted_indexes(indexes) result(sorted)
+        implicit none
+        integer(spip), dimension(:), intent(in):: indexes
+        integer(spip), dimension(size(indexes)):: sorted
+        ! Variables (used for performing quicksort *1)
+        integer(spip), dimension(size(indexes))::inds
+        integer(spip), parameter:: NN = 15, NSTACK = 50
+        integer(spip):: ia, sa ! pivots
+        integer(spip):: temp ! for swaping
+        integer(spip):: n, k, i, j, jstack, l, r
+        integer(spip), dimension(NSTACK):: istack
+        ! Code
+        n = size(indexes)
+        inds = indexes ! Copy indexes to inds to preserve indexes order
+        ! Creating array to return the position of indexes ordered
+        do i = 1, n
+            sorted(i) = i
+        enddo
+        jstack = 0
+        l = 1
+        r = n
+        do ! outer loop
+            if (r-l.lt.NN) then ! Insertion sort when subarray is small enough
+                do j = l+1, r
+                    ia = inds(j)
+                    sa = sorted(j)
+                    do i = j-1, l, -1
+                        if (inds(i).le.ia) exit
+                        inds(i+1) = inds(i)
+                        sorted(i+1) = sorted(i)
+                    enddo
+                    inds(i+1) = ia
+                    sorted(i+1) = sa
+                enddo
+                if (jstack.eq.0) return
+                r = istack(jstack)      ! Pop stack and begin a new round of
+                l = istack(jstack-1)    ! partitioning.
+                jstack = jstack - 2
+            else ! Choose median of left, center and right elements as
+                 ! partition element ia. Also rearrange so that a(1) <= a(l+1)
+                 ! <= a(r)
+                k = (l+r)/2
+                ! swap inds(k) with inds(l+1)
+                temp = inds(k)
+                inds(k) = inds(l+1)
+                inds(l+1) = temp
+                temp = sorted(k)
+                sorted(k) = sorted(l+1)
+                sorted(l+1) = temp
+                ! swap inds(l) with inds(r) if inds(l) > inds(r)
+                if (inds(l).gt.inds(r)) then
+                    temp = inds(l)
+                    inds(l) = inds(r)
+                    inds(r) = temp
+                    temp = sorted(l)
+                    sorted(l) = sorted(r)
+                    sorted(r) = temp
+                endif
+                ! swap inds(l+1) with inds(r) if inds(l+1) > inds(r)
+                if (inds(l+1).gt.inds(r)) then
+                    temp = inds(l+1)
+                    inds(l+1) = inds(r)
+                    inds(r) = temp
+                    temp = sorted(l+1)
+                    sorted(l+1) = sorted(r)
+                    sorted(r) = temp
+                endif
+                ! swap inds(l) with inds(l+1) if inds(l) > inds(l+1)
+                if (inds(l).gt.inds(l+1)) then
+                    temp = inds(l)
+                    inds(l) = inds(l+1)
+                    inds(l+1) = temp
+                    temp = sorted(l)
+                    sorted(l) = sorted(l+1)
+                    sorted(l+1) = temp
+                endif
+                i = l + 1 ! Initialize pointers for partitioning
+                j = r
+                ia = inds(l+1) ! Partitioning element
+                sa = sorted(l+1)
+                do ! inner loop
+                    do  ! Scan up to find element >= ia
+                        i = i + 1
+                        if (inds(i).ge.ia) exit
+                    enddo
+                    do ! Scan dou to find element <= ia
+                        j = j - 1
+                        if (inds(j).le.ia) exit
+                    enddo
+                    if (j.lt.i) exit ! Pointers crossed. Exit with partition
+                                     ! complete.
+                    ! swap ind(i) with ind(j) (exchange elements)
+                    temp = inds(i)
+                    inds(i) = inds(j)
+                    inds(j) = temp
+                    temp = sorted(i)
+                    sorted(i) = sorted(j)
+                    sorted(j) = temp
+                enddo ! end of inner loop
+                inds(l+1) = inds(j)
+                sorted(l+1) = sorted(j)
+                inds(j) = ia
+                sorted(j) = sa
+                jstack = jstack + 2
+                ! Push pointers to large subarray on stack; process smaller
+                ! subarray immediately
+                if (jstack.gt. NSTACK) then   !NSTACK is too small
+                    sorted = -1 ! return with error
+                    return
+                endif
+                if ((r-i+1).ge.(j-l)) then
+                    istack(jstack) = r
+                    istack(jstack-1) = i
+                    r = j - 1
+                else
+                    istack(jstack) = j - 1
+                    istack(jstack-1) = l
+                    l = i
+                endif
+            endif
+        enddo ! end of outer loop
+    end function sorted_indexes
+        ! *1: Based on the implementation presented in 
+        ! Numerical recipes in Fortran 90: The art of
+        ! parallel scientific computing (ISBN 0-521-57439-0)
+        ! (page 1169-1170)
+
+
 
     subroutine test_quicksort()
         implicit none
@@ -128,9 +257,22 @@ program ptest
         call quicksort_indices_sub(in_, out_, 1, n)
         call cpu_time(tf)
 
+        write(*,*)"Recursive version"
         write(*,*)"Testing quicksort: worked? (T/F?) ->",&
         (all(out_.eq.exp_))
-        write(*,*)"Time to sort ",n," terms:",(tf-ti)," (s)"
+        write(*,*)"Time to sort",n," terms:",(tf-ti)," (s)"
+        write(*,*)
+        write(*,*)"Numerical Recipes version"
+        
+        out_ = 0
+    
+        call cpu_time(ti)
+        out_ = sorted_indexes(in_)
+        call cpu_time(tf)
+        write(*,*)"Testing quicksort: worked? (T/F?) ->",&
+        (all(out_.eq.exp_))
+        write(*,*)"Time to sort",n," terms:",(tf-ti)," (s)"
+ 
 
 
     end subroutine test_quicksort
