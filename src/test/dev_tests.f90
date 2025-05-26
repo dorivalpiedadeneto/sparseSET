@@ -320,9 +320,9 @@ contains
         out_arr = sorted_indexes(in_arr)
         tested = tested + 1
         if (all(exp_arr.eq.out_arr)) correct = correct + 1
-        write(*,*)in_arr
-        write(*,*)out_arr
-        write(*,*)exp_arr
+        write(*,*)'in: ',in_arr
+        write(*,*)'out: ',out_arr
+        write(*,*)'exp: ',exp_arr
         write(*,*)(out_arr.eq.exp_arr)
 
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
