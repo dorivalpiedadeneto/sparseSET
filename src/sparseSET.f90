@@ -282,7 +282,8 @@ module sparseset
         ! Variables (used for performing quicksort *1)
         integer(spip), dimension(size(indexes))::inds
         integer(spip), parameter:: NN = 15, NSTACK = 50
-        integer(spip):: ia, sa ! variables for swap
+        integer(spip):: ia, sa ! pivots
+        integer(spip):: temp ! for swaping
         integer(spip):: n, k, i, j, jstack, l, r
         integer(spip), dimension(NSTACK):: istack
         ! Code
@@ -317,38 +318,38 @@ module sparseset
                  ! <= a(r)
                 k = (l+r)/2
                 ! swap inds(k) with inds(l+1)
-                ia = inds(k)
-                sa = sorted(k)
+                temp = inds(k)
                 inds(k) = inds(l+1)
+                inds(l+1) = temp
+                temp = sorted(k)
                 sorted(k) = sorted(l+1)
-                inds(l+1) = ia
-                sorted(l+1) = sa
+                sorted(l+1) = temp
                 ! swap inds(l) with inds(r) if inds(l) > inds(r)
                 if (inds(l).gt.inds(r)) then
-                    ia = inds(l)
-                    sa = sorted(l)
+                    temp = inds(l)
                     inds(l) = inds(r)
+                    inds(r) = temp
+                    temp = sorted(l)
                     sorted(l) = sorted(r)
-                    inds(r) = ia
-                    sorted(r) = sa
+                    sorted(r) = temp
                 endif
                 ! swap inds(l+1) with inds(r) if inds(l+1) > inds(r)
                 if (inds(l+1).gt.inds(r)) then
-                    ia = inds(l+1)
-                    sa = sorted(l+1)
+                    temp = inds(l+1)
                     inds(l+1) = inds(r)
+                    inds(r) = temp
+                    temp = sorted(l+1)
                     sorted(l+1) = sorted(r)
-                    inds(r) = ia
-                    sorted(r) = sa
+                    sorted(r) = temp
                 endif
                 ! swap inds(l) with inds(l+1) if inds(l) > inds(l+1)
                 if (inds(l).gt.inds(l+1)) then
-                    ia = inds(l)
-                    sa = sorted(l)
+                    temp = inds(l)
                     inds(l) = inds(l+1)
+                    inds(l+1) = temp
+                    temp = sorted(l)
                     sorted(l) = sorted(l+1)
-                    inds(l+1) = ia
-                    sorted(l+1) = sa
+                    sorted(l+1) = temp
                 endif
                 i = l + 1 ! Initialize pointers for partitioning
                 j = r
@@ -366,12 +367,12 @@ module sparseset
                     if (j.lt.i) exit ! Pointers crossed. Exit with partition
                                      ! complete.
                     ! swap ind(i) with ind(j) (exchange elements)
-                    ia = inds(i)
-                    sa = sorted(i)
+                    temp = inds(i)
                     inds(i) = inds(j)
+                    inds(j) = temp
+                    temp = sorted(i)
                     sorted(i) = sorted(j)
-                    inds(j) = ia
-                    sorted(j) = sa
+                    sorted(j) = temp
                 enddo ! end of inner loop
                 inds(l+1) = inds(j)
                 sorted(l+1) = sorted(j)
