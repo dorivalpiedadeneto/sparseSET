@@ -170,10 +170,11 @@ Recursive version
  Time to sort       10000  terms:   1.5300000000000036E-004  (s)
 ```
 
-In sumary:
+**In summary:**
 
-Trs: Time using recursive solution
-Tnr: Time using Numerical Recipes solution
+**Trs**: Time using recursive solution
+
+**Tnr**: Time using Numerical Recipes solution
 
 |  length    |    Trs (s)   |    Tnr (s)   |   Trs/Tnr | 
 |------------|--------------|--------------|-----------|
