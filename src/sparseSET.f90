@@ -402,5 +402,34 @@ module sparseset
         ! parallel scientific computing (ISBN 0-521-57439-0)
         ! (page 1169-1170)
 
+    subroutine assemble_sparse_line(spline)
+        implicit none
+        type(sparse_line), intent(inout):: spline
+        integer(spip), dimension(spline%lcount):: indexes,  ind
+        real(spdp), dimension(spline%lcount):: values
+        integer(spip):: i, pos
+        ind = sorted_indexes(spline%lindex)
+        ! Copying indexes in ascending order (and respective values)
+        do i = 1, spline%lcount
+            indexes(i) = spline%lindex(ind(i))
+            values(i) = spline%lvalue(ind(i))
+        enddo
+        ! Summing equal terms
+        pos = 1
+        do i = 2, spline%lcount
+            if (indexes(i).eq.indexes(pos)) then
+                values(pos) = values(pos) + values(i)
+            else
+                pos = pos + 1
+                indexes(pos) = indexes(i)
+                values(pos) = values(i)
+            endif
+        enddo
+        spline%lindex(1:pos) = indexes(1:pos)
+        spline%lvalue(1:pos) = values(1:pos)
+        spline%lcount = pos
+        spline%assembled = .true.
+    end subroutine assemble_sparse_line
+
 end module sparseset
 
