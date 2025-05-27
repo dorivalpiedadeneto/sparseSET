@@ -102,3 +102,83 @@ uses no optimization, probably performance is not something relevant
 in such a situation).
 
 
+## About the sorting algorithm
+
+Due to an error in the adapted sorting routine, we tested another
+implementation (a recursive one). Now that the bug in the Numerical
+Recipes based function is correctly working, it is possible to
+compare their performance.
+
+The results for a 600 length line.
+
+```
+ Recursive version
+ Testing quicksort: worked? (T/F?) -> T
+ Time to sort         600  terms:   1.8500000000000005E-004  (s)
+
+ Numerical Recipes version
+ Testing quicksort: worked? (T/F?) -> T
+ Time to sort         600  terms:   7.9999999999999776E-006  (s)
+
+```
+
+The value 600 is the length of a sparse\_line before assembling it.
+(we believe this is maximum length value for a common case of meshes
+of high order solid element modelling; generally 100 ou 200 would be
+typical values)
+
+In this case, considering the time to sort one million lines, for
+the recursive subroutine would be 185 seconds; the time to sort using
+the Numerical Recipes based function would be 8 seconds.
+
+Testing other values (only to undestand how perfomance changes)
+
+For length 100:
+
+```
+Recursive version
+ Testing quicksort: worked? (T/F?) -> T
+ Time to sort         100  terms:   4.9999999999999697E-005  (s)
+
+ Numerical Recipes version
+ Testing quicksort: worked? (T/F?) -> T
+ Time to sort         100  terms:   7.0000000000000617E-006  (s)
+ ```
+
+For length 1000:
+
+```
+Recursive version
+ Testing quicksort: worked? (T/F?) -> T
+ Time to sort        1000  terms:   5.9999999999999984E-004  (s)
+
+ Numerical Recipes version
+ Testing quicksort: worked? (T/F?) -> T
+ Time to sort        1000  terms:   1.0999999999999725E-005  (s)
+
+```
+
+For length 10000:
+
+```
+Recursive version
+ Testing quicksort: worked? (T/F?) -> T
+ Time to sort       10000  terms:   3.4148999999999999E-002  (s)
+
+ Numerical Recipes version
+ Testing quicksort: worked? (T/F?) -> T
+ Time to sort       10000  terms:   1.5300000000000036E-004  (s)
+```
+
+In sumary:
+
+Trs: Time using recursive solution
+Tnr: Time using Numerical Recipes solution
+
+|  length    |    Trs (s)   |    Tnr (s)   |   Trs/Tnr | 
+|------------|--------------|--------------|-----------|
+|    100     |    5.00E-5   |    8.00E-6   |   6.25    |
+|    600     |    1.85E-4   |    7.00E-6   |  26.42    |
+|   1000     |    6.00E-4   |    1.10E-5   |  54.54    |
+|  10000     |    3.41E-2   |    1.53E-4   | 222.88    |
+
