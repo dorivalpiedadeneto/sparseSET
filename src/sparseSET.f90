@@ -408,7 +408,7 @@ module sparseset
         integer(spip), dimension(spline%lcount):: indexes,  ind
         real(spdp), dimension(spline%lcount):: values
         integer(spip):: i, pos
-        ind = sorted_indexes(spline%lindex)
+        ind = sorted_indexes(spline%lindex(1:spline%lcount))
         ! Copying indexes in ascending order (and respective values)
         do i = 1, spline%lcount
             indexes(i) = spline%lindex(ind(i))
