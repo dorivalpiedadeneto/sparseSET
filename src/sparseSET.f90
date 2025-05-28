@@ -205,6 +205,7 @@ module sparseset
         sp_line%lcount = sp_line%lcount + 1
         sp_line%lindex(sp_line%lcount) = index
         sp_line%lvalue(sp_line%lcount) = value
+        sp_line%assembled = .false.
     end subroutine push_term_to_line
 
     subroutine push_terms_to_line(sp_line, indexes, values, stat)
@@ -242,6 +243,7 @@ module sparseset
         sp_line%lindex(sb:sb+nt) = indexes
         sp_line%lvalue(sb:sb+nt) = values
         sp_line%lcount = sp_line%lcount + nt !lcount + number of terms pushed
+        sp_line%assembled = .false.
     end subroutine push_terms_to_line
     
     subroutine clear_sparse_line(sp_line)
