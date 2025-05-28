@@ -323,6 +323,89 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_quicksort
 
+    subroutine test_assemble_line()
+        implicit none
+        type(sparse_line)::sp_line
+        integer:: correct, tested, i
+        real(spdp)::tol=1.0e-6
+        real(spdp),dimension(10)::ex_vals
+        call allocate_sparse_line(sp_line, 10, 10)
+        write(*,"(a)",advance="no")"Testing assemble line sub:"
+        tested = 0; correct = 0
+        call push_terms_to_line(sp_line, (/3,1,2,1,2,4,5,2/), &
+        (/0.5_spdp, 1.0_spdp, 0.2_spdp, 1.0_spdp, 0.2_spdp,-2.0_spdp, &
+        3.0_spdp, 0.2_spdp/))
+        tested = tested + 1
+        if (sp_line%lcount.eq.8) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%assembled.eqv..false.) correct = correct + 1
+        call assemble_sparse_line(sp_line)
+        tested = tested + 1
+        if (sp_line%lcount.eq.5) correct = correct + 1
+        tested = tested + 1
+        if (all(sp_line%lindex(1:sp_line%lcount).eq.(/1,2,3,4,5/)))&
+            correct = correct + 1
+        ! For testing the floating point values, use tolerance
+        ! (testing one by one, at least for now)
+        ex_vals(1:5) = (/2.0_spdp, 0.6_spdp, 0.5_spdp, -2.0_spdp, 3.0_spdp/)
+        do i = 1, 5
+            tested = tested + 1
+            if ((sp_line%lvalue(i) - ex_vals(i))**2.lt.tol) &
+                correct = correct + 1
+        enddo
+        tested = tested + 1
+        if (sp_line%assembled.eqv..true.) correct = correct + 1
+        ! Testing if pushing after assembling is correctly done
+        call push_terms_to_line(sp_line,(/3,2,9,8/),&
+        (/0.5_spdp, 0.4_spdp, -1.0_spdp, 2.3_spdp/))
+        tested = tested + 1
+        if (sp_line%lcount.eq.9) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%assembled.eqv..false.) correct = correct + 1
+        call assemble_sparse_line(sp_line)
+        tested = tested + 1
+        if (sp_line%lcount.eq.7) correct = correct + 1
+        tested = tested + 1
+        if (all(sp_line%lindex(1:sp_line%lcount).eq.(/1,2,3,4,5,8,9/)))&
+            correct = correct + 1
+        ! For testing the floating point values, use tolerance
+        ! (testing one by one, at least for now)
+        ex_vals(1:7) = (/2.0_spdp, 1.0_spdp, 1.0_spdp, -2.0_spdp,&
+        3.0_spdp, 2.3_spdp, -1.0_spdp/)
+        do i = 1, 7
+            tested = tested + 1
+            if ((sp_line%lvalue(i) - ex_vals(i))**2.lt.tol) &
+                correct = correct + 1
+        enddo
+        tested = tested + 1
+        if (sp_line%assembled.eqv..true.) correct = correct + 1
+        ! Now test adding one term
+        call push_term_to_line(sp_line,10,-10.0_spdp)
+        tested = tested + 1
+        if (sp_line%lcount.eq.8) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%assembled.eqv..false.) correct = correct + 1
+        call assemble_sparse_line(sp_line)
+        tested = tested + 1
+        if (sp_line%lcount.eq.8) correct = correct + 1
+        tested = tested + 1
+        if (all(sp_line%lindex(1:sp_line%lcount).eq.(/1,2,3,4,5,8,9,10/)))&
+            correct = correct + 1
+        ! For testing the floating point values, use tolerance
+        ! (testing one by one, at least for now)
+        ex_vals(1:8) = (/2.0_spdp, 1.0_spdp, 1.0_spdp, -2.0_spdp,&
+        3.0_spdp, 2.3_spdp, -1.0_spdp, -10.0_spdp/)
+        do i = 1, 8
+            tested = tested + 1
+            if ((sp_line%lvalue(i) - ex_vals(i))**2.lt.tol) &
+                correct = correct + 1
+        enddo
+        tested = tested + 1
+        if (sp_line%assembled.eqv..true.) correct = correct + 1
+
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
+    end subroutine test_assemble_line
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
@@ -330,6 +413,7 @@ contains
         call test_pushing_to_line()
         call test_copy_line_terms()
         call test_quicksort()
+        call test_assemble_line()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
