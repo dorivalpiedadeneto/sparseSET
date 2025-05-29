@@ -183,3 +183,37 @@ Recursive version
 |   1000     |    6.00E-4   |    1.10E-5   |  54.54    |
 |  10000     |    3.41E-2   |    1.53E-4   | 222.88    |
 
+## 2025/05/29
+
+### Some performance test to evaluate the current implementation.
+
+The sorting function returns a integer vector with the order of the
+sorted values. Them, the sparse lines indexes and values are copied,
+sorted using this vector, summed and copied back to the sparse line.
+
+All this copies may be something bad for the performance.
+
+To evaluate how much the whole process (sorting, copying and summing)
+can be bad for the performance, let's compare the times for just
+sorting and for the process:
+
+_(using the subroutines  from ptest.f90) _
+
+```
+gfortran -O2 src/test/ptests.f90 -o bin/ptests
+  25k lines, terms/lines: 100
+  -> Time to assemble (s):  0.22111700000000001
+  100k lines, terms/lines: 200
+  -> Time to assemble (s):   2.7778140000000002
+  100k lines, terms/lines: 600
+  -> Time to assemble (s):   20.100937000000002
+  25k lines, terms/lines: 100 (only sorting)
+  -> Time to sort (s):   5.6910000000002015E-002
+  100k lines, terms/lines: 200 (only sorting)
+  -> Time to sort (s):  0.49897200000000197
+  100k lines, terms/lines: 600 (only sorting)
+  -> Time to sort (s):   1.8209410000000013
+```
+
+In fact, the adopted approach presents a bad performance.
+
