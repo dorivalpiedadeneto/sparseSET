@@ -11,8 +11,8 @@ program ptest
     !call test_indexes_creation()
     !call test_quicksort()
     !call test_assembling_time()
-    !call test_assemble_time_v2()
-    call test_sort_indexes_and_values()
+    call test_assemble_time_v2()
+    !call test_sort_indexes_and_values()
     contains
 
     subroutine test_indexes_creation()
