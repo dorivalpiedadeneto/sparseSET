@@ -217,3 +217,28 @@ gfortran -O2 src/test/ptests.f90 -o bin/ptests
 
 In fact, the adopted approach presents a bad performance.
 
+
+A new method to order both indexes and values at the same time was 
+created in ptest. It was implemented as a subroutine that only
+swaps terms (instead of creating a new integer vector and returning
+it ordered as a function). The time difference is huge.
+First it seemed that the new method is wrong (due to such a great
+time difference). The first tests indicate that it is right.
+
+Next step: implement it in sparseSET, test it, and if it is indeed
+right... well, thats great news.
+
+Results obtained for the new method:
+
+
+```
+  Now testing version 2 of assemble sparse line!!!
+  25k lines, terms/lines: 100
+  -> Time to assemble (s):   2.7800000000000047E-004
+  100k lines, terms/lines: 200
+  -> Time to assemble (s):   9.6000000000001640E-004
+  100k lines, terms/lines: 600
+  -> Time to assemble (s):   2.0219999999999683E-003
+```
+
+(or something was terrible wrong before, or now! Let's test it better!)
