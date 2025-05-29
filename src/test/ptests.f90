@@ -8,9 +8,9 @@ program ptest
     integer, parameter::spip = 4, spdp = 8
     integer(spip),dimension(:), allocatable::indexes
 
-    call test_indexes_creation()
-    call test_quicksort()
-
+    !call test_indexes_creation()
+    !call test_quicksort()
+    call test_assembling_time()
     contains
 
     subroutine test_indexes_creation()
@@ -272,9 +272,165 @@ program ptest
         write(*,*)"Testing quicksort: worked? (T/F?) ->",&
         (all(out_.eq.exp_))
         write(*,*)"Time to sort",n," terms:",(tf-ti)," (s)"
- 
-
 
     end subroutine test_quicksort
+
+    subroutine assemble_sparse_line(indexes, values, len)
+        implicit none
+        integer(spip), dimension(:), intent(inout):: indexes
+        real(spdp), dimension(:), intent(inout):: values
+        integer(spip), intent(in):: len
+        integer(spip), dimension(size(indexes)):: ind, ind2
+        real(spdp), dimension(size(values)):: val2
+        integer(spip):: i, pos
+        ind = sorted_indexes(indexes(1:len))
+        ! Copying indexes in ascending order (and respective values)
+        do i = 1,len
+            ind2 = indexes(i)
+            val2 = values(i)
+        enddo
+        ! Summing equal terms
+        pos = 1
+        do i = 2, len
+            if (ind2(i).eq.ind2(pos)) then
+                val2(pos) = val2(pos) + val2(i)
+            else
+                pos = pos + 1
+                ind2(pos) = ind2(i)
+                val2(pos) = val2(i)
+            endif
+        enddo
+        indexes(1:pos) = ind2(1:pos)
+        values(1:pos) = val2(1:pos)
+    end subroutine assemble_sparse_line
+
+    subroutine random_indexes_values(indexes, values, imin, imax, vmin, vmax)
+        implicit none
+        integer(spip), dimension(:), intent(inout):: indexes
+        real(spdp), dimension(:), intent(inout):: values
+        integer(spip), intent(in):: imin, imax
+        real(spdp), intent(in):: vmin, vmax
+        call random_seed()
+        call random_number(values)
+        indexes = int(imin * (1.0_spdp - values) + imax * values)
+        call random_number(values)
+        values = vmin * (1.0_spdp - values) + vmax * values
+    end subroutine random_indexes_values
+
+
+
+    subroutine test_assembling_time()
+        implicit none
+        integer(spip), dimension(:), allocatable::indexes, ind
+        real(spdp), dimension(:), allocatable:: values
+        integer(spip)::nsys, nband,i,cnt
+        real(spdp)::ti, tf
+        !allocate(indexes(10),values(10))
+        !call random_indexes_values(indexes, values, 1,100,&
+        !-100.0_spdp, 100.0_spdp)
+        !write(*,*)indexes
+        !write(*,*)values
+        
+        ! Only to the test if it is working
+        !nsys = 10; nband = 3
+        !allocate(indexes(nsys*nband), values(nsys*nband))
+        !call random_indexes_values(indexes, values, 1, nsys*nband,&
+        !-1000.0_spdp, 1000.0_spdp)
+        !cnt = 1
+        !do i=1,nband*nsys,nband
+        !    write(*,*)"Line # ",cnt
+        !    write(*,*)"->",indexes(i:i+nband-1)
+        !    write(*,*)"->",values(i:i+nband-1)
+        !    cnt = cnt + 1
+        !enddo
+        
+        ! Testing a system of equation with 25k lines, bandwith of 100
+        nsys = 25000; nband = 100
+        allocate(indexes(nsys*nband), values(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 25k lines, terms/lines: 100"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            call assemble_sparse_line(indexes(i:i+nband-1),&
+            values(i:i+nband-1),nband)
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to assemble (s):",tf-ti
+        deallocate(indexes, values)
+
+        ! Testing a system of equation with 100k lines, bandwith of 200
+        nsys = 100000; nband = 200
+        allocate(indexes(nsys*nband), values(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 100k lines, terms/lines: 200"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            call assemble_sparse_line(indexes(i:i+nband-1),&
+            values(i:i+nband-1),nband)
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to assemble (s):",tf-ti
+        deallocate(indexes, values)
+
+        ! Testing a system of equation with 100k lines, bandwith of 600
+        nsys = 100000; nband = 600
+        allocate(indexes(nsys*nband), values(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 100k lines, terms/lines: 600"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            call assemble_sparse_line(indexes(i:i+nband-1),&
+            values(i:i+nband-1),nband)
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to assemble (s):",tf-ti
+        deallocate(indexes, values)
+
+        ! Testing a system of equation with 25k lines, bandwith of 100
+        nsys = 25000; nband = 100
+        allocate(indexes(nsys*nband), values(nsys*nband), ind(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 25k lines, terms/lines: 100 (only sorting)"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            ind(i:i+nband-1) = sorted_indexes(indexes(i:i+nband-1))
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to sort (s):",tf-ti
+        deallocate(indexes, values, ind)
+        ! Testing a system of equation with 100k lines, bandwith of 200
+        nsys = 100000; nband = 200
+        allocate(indexes(nsys*nband), values(nsys*nband), ind(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 100k lines, terms/lines: 200 (only sorting)"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            ind(i:i+nband-1) = sorted_indexes(indexes(i:i+nband-1))
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to sort (s):",tf-ti
+        deallocate(indexes, values, ind)
+        ! Testing a system of equation with 100k lines, bandwith of 600
+        nsys = 100000; nband = 600
+        allocate(indexes(nsys*nband), values(nsys*nband), ind(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 100k lines, terms/lines: 600 (only sorting)"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            ind(i:i+nband-1) = sorted_indexes(indexes(i:i+nband-1))
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to sort (s):",tf-ti
+        deallocate(indexes, values, ind)
+
+
+
+    end subroutine test_assembling_time
 
 end program ptest
