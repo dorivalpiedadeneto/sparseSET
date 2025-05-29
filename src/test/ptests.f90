@@ -10,7 +10,9 @@ program ptest
 
     !call test_indexes_creation()
     !call test_quicksort()
-    call test_assembling_time()
+    !call test_assembling_time()
+    !call test_assemble_time_v2()
+    call test_sort_indexes_and_values()
     contains
 
     subroutine test_indexes_creation()
@@ -317,8 +319,6 @@ program ptest
         values = vmin * (1.0_spdp - values) + vmax * values
     end subroutine random_indexes_values
 
-
-
     subroutine test_assembling_time()
         implicit none
         integer(spip), dimension(:), allocatable::indexes, ind
@@ -429,8 +429,230 @@ program ptest
         write(*,*)" -> Time to sort (s):",tf-ti
         deallocate(indexes, values, ind)
 
-
-
     end subroutine test_assembling_time
+
+    ! New method to assemble (old was not so efficient)
+
+    subroutine sort_indexes_and_values(indexes, values, len, err_stat)
+        implicit none
+        integer(spip), dimension(:), intent(inout):: indexes
+        real(spdp), dimension(:), intent(inout):: values
+        integer(spip), intent(in):: len
+        integer(spip), intent(out), optional:: err_stat
+        ! Variables (used for performing quicksort *1)
+        integer(spip), parameter:: NN = 15, NSTACK = 50
+        integer(spip):: ia, itemp ! pivot and swap var.
+        real(spdp)::ra, rtemp ! pivot and swap var.
+        integer(spip):: n, k, i, j, jstack, l, r
+        integer(spip), dimension(NSTACK):: istack
+        if (present(err_stat)) err_stat = 0
+        ! Code
+        n = size(indexes)
+        jstack = 0
+        l = 1
+        r = n
+        do ! outer loop
+            if (r-l.lt.NN) then ! Insertion sort when subarray is small enough
+                do j = l+1, r
+                    ia = indexes(j)
+                    ra = values(j)
+                    do i = j-1, l, -1
+                        if (indexes(i).le.ia) exit
+                        indexes(i+1) = indexes(i)
+                        values(i+1) = values(i)
+                    enddo
+                    indexes(i+1) = ia
+                    values(i+1) = ra
+                enddo
+                if (jstack.eq.0) return
+                r = istack(jstack)      ! Pop stack and begin a new round of
+                l = istack(jstack-1)    ! partitioning.
+                jstack = jstack - 2
+            else ! Choose median of left, center and right elements as
+                 ! partition element ia. Also rearrange so that a(1) <= a(l+1)
+                 ! <= a(r)
+                k = (l+r)/2
+                ! swap inds(k) with inds(l+1)
+                itemp = indexes(k)
+                indexes(k) = indexes(l+1)
+                indexes(l+1) = itemp
+                rtemp = values(k)
+                values(k) = values(l+1)
+                values(l+1) = rtemp
+                ! swap inds(l) with inds(r) if inds(l) > inds(r)
+                if (indexes(l).gt.indexes(r)) then
+                    itemp = indexes(l)
+                    indexes(l) = indexes(r)
+                    indexes(r) = itemp
+                    rtemp = values(l)
+                    values(l) = values(r)
+                    values(r) = rtemp
+                endif
+                ! swap inds(l+1) with inds(r) if inds(l+1) > inds(r)
+                if (indexes(l+1).gt.indexes(r)) then
+                    itemp = indexes(l+1)
+                    indexes(l+1) = indexes(r)
+                    indexes(r) = itemp
+                    rtemp = values(l+1)
+                    values(l+1) = values(r)
+                    values(r) = rtemp
+                endif
+                ! swap inds(l) with inds(l+1) if inds(l) > inds(l+1)
+                if (indexes(l).gt.indexes(l+1)) then
+                    itemp = indexes(l)
+                    indexes(l) = indexes(l+1)
+                    indexes(l+1) = itemp
+                    rtemp = values(l)
+                    values(l) = values(l+1)
+                    values(l+1) = rtemp
+                endif
+                i = l + 1 ! Initialize pointers for partitioning
+                j = r
+                ia = indexes(l+1) ! Partitioning element
+                ra = values(l+1)
+                do ! inner loop
+                    do  ! Scan up to find element >= ia
+                        i = i + 1
+                        if (indexes(i).ge.ia) exit
+                    enddo
+                    do ! Scan dou to find element <= ia
+                        j = j - 1
+                        if (indexes(j).le.ia) exit
+                    enddo
+                    if (j.lt.i) exit ! Pointers crossed. Exit with partition
+                                     ! complete.
+                    ! swap ind(i) with ind(j) (exchange elements)
+                    itemp = indexes(i)
+                    indexes(i) = indexes(j)
+                    indexes(j) = itemp
+                    rtemp = values(i)
+                    values(i) = values(j)
+                    values(j) = rtemp
+                enddo ! end of inner loop
+                indexes(l+1) = indexes(j)
+                values(l+1) = values(j)
+                indexes(j) = ia
+                values(j) = ra
+                jstack = jstack + 2
+                ! Push pointers to large subarray on stack; process smaller
+                ! subarray immediately
+                if (jstack.gt. NSTACK) then   !NSTACK is too small
+                    if (present(err_stat)) err_stat = -1 ! return with error
+                    return
+                endif
+                if ((r-i+1).ge.(j-l)) then
+                    istack(jstack) = r
+                    istack(jstack-1) = i
+                    r = j - 1
+                else
+                    istack(jstack) = j - 1
+                    istack(jstack-1) = l
+                    l = i
+                endif
+            endif
+        enddo ! end of outer loop
+    end subroutine sort_indexes_and_values
+
+    subroutine assemble_sparse_line_v2(indexes, values, len)
+        implicit none
+        integer(spip), dimension(:), intent(inout):: indexes
+        real(spdp), dimension(:), intent(inout):: values
+        integer(spip), intent(inout):: len
+        integer(spip)::i, pos
+        call sort_indexes_and_values(indexes, values, len)
+        pos = 1
+        do i = 2, len
+            if (indexes(i).eq.indexes(pos)) then
+                values(pos) = values(pos) + values(i)
+            else
+                pos = pos + 1
+                indexes(pos) = indexes(i)
+                values(pos) = values(i)
+            endif
+        enddo
+        len = pos
+    end subroutine assemble_sparse_line_v2
+
+    subroutine test_assemble_time_v2()
+        implicit none
+        integer(spip), dimension(:), allocatable::indexes
+        real(spdp), dimension(:), allocatable:: values
+        integer(spip)::nsys, nband,i,cnt
+        real(spdp)::ti, tf
+
+        write(*,*)" Now testing version 2 of assemble sparse line!!!"
+        ! Testing a system of equation with 25k lines, bandwith of 100
+        nsys = 25000; nband = 100
+        allocate(indexes(nsys*nband), values(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 25k lines, terms/lines: 100"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            call assemble_sparse_line_v2(indexes(i:i+nband-1),&
+            values(i:i+nband-1),nband)
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to assemble (s):",tf-ti
+        deallocate(indexes, values)
+
+        ! Testing a system of equation with 100k lines, bandwith of 200
+        nsys = 100000; nband = 200
+        allocate(indexes(nsys*nband), values(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 100k lines, terms/lines: 200"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            call assemble_sparse_line_v2(indexes(i:i+nband-1),&
+            values(i:i+nband-1),nband)
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to assemble (s):",tf-ti
+        deallocate(indexes, values)
+
+        ! Testing a system of equation with 100k lines, bandwith of 600
+        nsys = 100000; nband = 600
+        allocate(indexes(nsys*nband), values(nsys*nband))
+        call random_indexes_values(indexes, values, 1, 10*nband,&
+        -1000.0_spdp, 1000.0_spdp)
+        write(*,*)" 100k lines, terms/lines: 600"
+        call cpu_time(ti)
+        do i=1,nband*nsys,nband
+            call assemble_sparse_line_v2(indexes(i:i+nband-1),&
+            values(i:i+nband-1),nband)
+        enddo
+        call cpu_time(tf)
+        write(*,*)" -> Time to assemble (s):",tf-ti
+        deallocate(indexes, values)
+
+    end subroutine test_assemble_time_v2
+
+    subroutine test_sort_indexes_and_values()
+        implicit none
+        integer(spip), dimension(:),allocatable::indexes, exp_ind
+        real(spdp), dimension(:), allocatable::values, exp_val
+        integer(spip)::i, n
+        logical:: ordered
+        n = 200000
+        allocate(indexes(n), values(n), exp_ind(n), exp_val(n))
+        do i = 1, n
+            indexes(i) = n - i + 1
+            values(i) = dble(n -i + 1)
+            exp_ind(i) = i
+            exp_val(i) = dble(i)
+        end do
+        call sort_indexes_and_values(indexes, values, n)
+        write(*,*)"OK? ->",all(exp_ind.eq.indexes)
+        write(*,*)"Other test..."
+        call random_indexes_values(indexes, values, 1,200, -10.0_spdp, 10.0_spdp)
+        call sort_indexes_and_values(indexes, values, n)
+        ordered = .true.
+        do i = 1, size(indexes)-1
+            if (indexes(i).gt.indexes(i+1)) ordered = .false.
+        enddo
+        write(*,*)"Is random generated vector now ordered? ->",ordered
+
+    end subroutine test_sort_indexes_and_values
 
 end program ptest
