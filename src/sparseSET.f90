@@ -560,8 +560,8 @@ module sparseset
         implicit none
         type(sparse_line), intent(inout):: spline
         integer(spip)::i, pos
-        call sort_indexes_and_values(spline%lindex, spline%lvalue,&
-             spline%lcount)
+        call sort_indexes_and_values(spline%lindex(1:spline%lcount),&
+             spline%lvalue(1:spline%lcount), spline%lcount)
         pos = 1
         do i = 2, spline%lcount
             if (spline%lindex(i).eq.spline%lindex(pos)) then
@@ -573,6 +573,7 @@ module sparseset
             endif
         enddo
         spline%lcount = pos
+        spline%assembled = .true.
     end subroutine assemble_sparse_line
 
 
