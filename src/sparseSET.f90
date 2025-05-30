@@ -404,7 +404,10 @@ module sparseset
         ! parallel scientific computing (ISBN 0-521-57439-0)
         ! (page 1169-1170)
 
-    subroutine assemble_sparse_line(spline)
+    ! This version used sorted_indexes; the used approach is much slower
+    ! than the new version, that uses sort_indexes_and_values (keeping
+    ! the old version here, for now)
+    subroutine assemble_sparse_line_old_version(spline)
         implicit none
         type(sparse_line), intent(inout):: spline
         integer(spip), dimension(spline%lcount):: indexes,  ind
@@ -431,7 +434,147 @@ module sparseset
         spline%lvalue(1:pos) = values(1:pos)
         spline%lcount = pos
         spline%assembled = .true.
+    end subroutine assemble_sparse_line_old_version
+
+    subroutine sort_indexes_and_values(indexes, values, length, stat)
+        implicit none
+        integer(spip), dimension(:), intent(inout):: indexes
+        real(spdp), dimension(:), intent(inout):: values
+        integer(spip), intent(in):: length
+        integer(spip), intent(out), optional:: stat
+        ! Variables (used for performing quicksort *1)
+        integer(spip), parameter:: NN = 15, NSTACK = 50
+        integer(spip):: ia, itemp ! pivot and swap var.
+        real(spdp)::ra, rtemp ! pivot and swap var.
+        integer(spip):: n, k, i, j, jstack, l, r
+        integer(spip), dimension(NSTACK):: istack
+        if (present(stat)) stat = 0
+        ! Code
+        n = size(indexes)
+        jstack = 0
+        l = 1
+        r = n
+        do ! outer loop
+            if (r-l.lt.NN) then ! Insertion sort when subarray is small enough
+                do j = l+1, r
+                    ia = indexes(j)
+                    ra = values(j)
+                    do i = j-1, l, -1
+                        if (indexes(i).le.ia) exit
+                        indexes(i+1) = indexes(i)
+                        values(i+1) = values(i)
+                    enddo
+                    indexes(i+1) = ia
+                    values(i+1) = ra
+                enddo
+                if (jstack.eq.0) return
+                r = istack(jstack)      ! Pop stack and begin a new round of
+                l = istack(jstack-1)    ! partitioning.
+                jstack = jstack - 2
+            else ! Choose median of left, center and right elements as
+                 ! partition element ia. Also rearrange so that a(1) <= a(l+1)
+                 ! <= a(r)
+                k = (l+r)/2
+                ! swap inds(k) with inds(l+1)
+                itemp = indexes(k)
+                indexes(k) = indexes(l+1)
+                indexes(l+1) = itemp
+                rtemp = values(k)
+                values(k) = values(l+1)
+                values(l+1) = rtemp
+                ! swap inds(l) with inds(r) if inds(l) > inds(r)
+                if (indexes(l).gt.indexes(r)) then
+                    itemp = indexes(l)
+                    indexes(l) = indexes(r)
+                    indexes(r) = itemp
+                    rtemp = values(l)
+                    values(l) = values(r)
+                    values(r) = rtemp
+                endif
+                ! swap inds(l+1) with inds(r) if inds(l+1) > inds(r)
+                if (indexes(l+1).gt.indexes(r)) then
+                    itemp = indexes(l+1)
+                    indexes(l+1) = indexes(r)
+                    indexes(r) = itemp
+                    rtemp = values(l+1)
+                    values(l+1) = values(r)
+                    values(r) = rtemp
+                endif
+                ! swap inds(l) with inds(l+1) if inds(l) > inds(l+1)
+                if (indexes(l).gt.indexes(l+1)) then
+                    itemp = indexes(l)
+                    indexes(l) = indexes(l+1)
+                    indexes(l+1) = itemp
+                    rtemp = values(l)
+                    values(l) = values(l+1)
+                    values(l+1) = rtemp
+                endif
+                i = l + 1 ! Initialize pointers for partitioning
+                j = r
+                ia = indexes(l+1) ! Partitioning element
+                ra = values(l+1)
+                do ! inner loop
+                    do  ! Scan up to find element >= ia
+                        i = i + 1
+                        if (indexes(i).ge.ia) exit
+                    enddo
+                    do ! Scan dou to find element <= ia
+                        j = j - 1
+                        if (indexes(j).le.ia) exit
+                    enddo
+                    if (j.lt.i) exit ! Pointers crossed. Exit with partition
+                                     ! complete.
+                    ! swap ind(i) with ind(j) (exchange elements)
+                    itemp = indexes(i)
+                    indexes(i) = indexes(j)
+                    indexes(j) = itemp
+                    rtemp = values(i)
+                    values(i) = values(j)
+                    values(j) = rtemp
+                enddo ! end of inner loop
+                indexes(l+1) = indexes(j)
+                values(l+1) = values(j)
+                indexes(j) = ia
+                values(j) = ra
+                jstack = jstack + 2
+                ! Push pointers to large subarray on stack; process smaller
+                ! subarray immediately
+                if (jstack.gt. NSTACK) then   !NSTACK is too small
+                    if (present(stat)) stat = -1 ! return with error
+                    return
+                endif
+                if ((r-i+1).ge.(j-l)) then
+                    istack(jstack) = r
+                    istack(jstack-1) = i
+                    r = j - 1
+                else
+                    istack(jstack) = j - 1
+                    istack(jstack-1) = l
+                    l = i
+                endif
+            endif
+        enddo ! end of outer loop
+    end subroutine sort_indexes_and_values
+
+    subroutine assemble_sparse_line(spline)
+        implicit none
+        type(sparse_line), intent(inout):: spline
+        integer(spip)::i, pos
+        call sort_indexes_and_values(spline%lindex, spline%lvalue,&
+             spline%lcount)
+        pos = 1
+        do i = 2, spline%lcount
+            if (spline%lindex(i).eq.spline%lindex(pos)) then
+                spline%lvalue(pos) = spline%lvalue(pos) + spline%lvalue(i)
+            else
+                pos = pos + 1
+                spline%lindex(pos) = spline%lindex(i)
+                spline%lvalue(pos) = spline%lvalue(i)
+            endif
+        enddo
+        spline%lcount = pos
     end subroutine assemble_sparse_line
+
 
 end module sparseset
 
