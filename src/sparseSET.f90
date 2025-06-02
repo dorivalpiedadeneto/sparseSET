@@ -584,7 +584,8 @@ module sparseset
         integer(spip), intent(in):: ind
         integer(spip):: pos
         integer(spip):: ib, ie, im !b -> begin; e -> end; m -> middle
-        if (spline%lcount.eq.0) then
+
+        if (spline%lcount.ne.0) then
             ! Sparse line must be assembled (if it is not, assemble it)
             if (.not.spline%assembled) call assemble_sparse_line(spline)
             ib = 1
