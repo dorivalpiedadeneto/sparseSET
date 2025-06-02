@@ -406,6 +406,21 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_assemble_line
 
+    subroutine test_search_line()
+        implicit none
+        type(sparse_line)::spline
+        integer(spip)::tested, correct, pos, ind
+        write(*,"(a)",advance="no")"Testing search_line function:"
+        tested = 0
+        correct = 0
+        tested = tested + 1
+        pos = search_line(spline,1)
+        if (pos.eq.-1) correct = correct + 1
+        
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
+
+    end subroutine test_search_line
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
@@ -414,6 +429,7 @@ contains
         call test_copy_line_terms()
         call test_quicksort()
         call test_assemble_line()
+        call test_search_line()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
