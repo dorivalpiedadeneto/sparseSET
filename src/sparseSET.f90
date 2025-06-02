@@ -576,6 +576,60 @@ module sparseset
         spline%assembled = .true.
     end subroutine assemble_sparse_line
 
+    ! If index is found, returns its position in line;
+    ! if not, returns -1.
+    function search_line(spline, ind) result(pos)
+        implicit none
+        type(sparse_line), intent(inout):: spline
+        integer(spip), intent(in):: ind
+        integer(spip):: pos
+        integer(spip):: ib, ie, im !b -> begin; e -> end; m -> middle
+        if (spline%lcount.eq.0) then
+            ! Sparse line must be assembled (if it is not, assemble it)
+            if (.not.spline%assembled) call assemble_sparse_line(spline)
+            ib = 1
+            ie = spline%lcount
+            if ((spline%lindex(ib).gt.ind).or.(spline%lindex(ie).lt.ind)) then
+                pos = -1
+                return
+            endif
+            if (spline%lindex(ib).eq.ind) then
+                pos = ib
+                return
+            endif
+            if (spline%lindex(ie).eq.ind) then
+                pos = ie
+                return
+            endif
+
+            do while ((ie - ib).gt.1)
+                if (spline%lindex(ib).eq.ind) then
+                    pos = ib
+                    return
+                endif
+                if (spline%lindex(ie).eq.ind) then
+                    pos = ie
+                    return
+                endif
+                im = ib + (ie - ib) / 2
+                if (spline%lindex(im).eq.ind) then
+                    pos = im
+                    return
+                endif
+                if (ind.lt.spline%lindex(im)) then
+                    ie = im
+                else
+                    ib = im
+                endif
+            enddo
+            ! If it gets here, index was not found
+            pos = -1
+            return
+        endif
+        ! Line has zero terms
+        pos = -1
+        return
+    end function search_line
 
 end module sparseset
 
