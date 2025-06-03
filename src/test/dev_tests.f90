@@ -409,16 +409,110 @@ contains
     subroutine test_search_line()
         implicit none
         type(sparse_line)::spline
-        integer(spip)::tested, correct, pos, ind
+        integer(spip)::tested, correct, pos, ind, err_stat, i
+        real(spdp)::tol=1.0e-6_spdp
         write(*,"(a)",advance="no")"Testing search_line function:"
         tested = 0
         correct = 0
         tested = tested + 1
         pos = search_line(spline,1)
         if (pos.eq.-1) correct = correct + 1
-        
+        call allocate_sparse_line(spline, 20, 100)
+        tested = tested + 1
+        pos = search_line(spline,1)
+        if (pos.eq.-1) correct = correct + 1
+        call push_terms_to_line(spline,(/17, 21, 12, 15, 12, 25, 27, 17/),&
+        (/9.0_spdp, 21.0_spdp, 6.0_spdp, 15.0_spdp, 6.0_spdp, 25.0_spdp,&
+        27.0_spdp, 8.0_spdp/), err_stat)
+        ! Does the pushing went right?
+        tested = tested + 1
+        if (err_stat.eq.0) correct = correct + 1
+        ! Sparse line must be not assembled yet
+        tested = tested + 1
+        if (spline%assembled.eqv..false.) correct = correct + 1
+        ! Searching must assemble automatically (even if ind is not found)
+        tested = tested + 1
+        pos = search_line(spline,1)
+        if (pos.eq.-1) correct = correct + 1
+        ! Is it assembled now (it must be!)  
+        tested = tested + 1
+        if (spline%assembled.eqv..true.) correct = correct + 1
+        do i=1,11
+            tested = tested + 1
+            pos = search_line(spline,i)
+            if (pos.eq.-1) correct = correct + 1
+        enddo
+        ! The first term must be 12
+        tested = tested + 1
+        pos = search_line(spline, 12)
+        if (pos.eq.1) correct = correct + 1
+        tested = tested + 1
+        if (dabs(spline%lvalue(pos)-12.0_spdp).lt.tol) correct = correct + 1
+        ! 13 and 14 are not in the line
+        tested = tested + 1
+        pos = search_line(spline, 13)
+        if (pos.eq.-1) correct = correct + 1
+        tested = tested + 1
+        pos = search_line(spline, 14)
+        if (pos.eq.-1) correct = correct + 1
+        ! The second term must be 15
+        tested = tested + 1
+        pos = search_line(spline, 15)
+        if (pos.eq.2) correct = correct + 1
+        tested = tested + 1
+        if (dabs(spline%lvalue(pos)-15.0_spdp).lt.tol) correct = correct + 1
+        ! 16 is not in the line
+        tested = tested + 1
+        pos = search_line(spline, 16)
+        if (pos.eq.-1) correct = correct + 1
+        ! The third term must be 17
+        tested = tested + 1
+        pos = search_line(spline, 17)
+        if (pos.eq.3) correct = correct + 1
+        tested = tested + 1
+        if (dabs(spline%lvalue(pos)-17.0_spdp).lt.tol) correct = correct + 1
+        ! 18 to 20 and 22 to 24 are not in the line 
+        do i=18, 20
+            tested = tested + 1
+            pos = search_line(spline,i)
+            if (pos.eq.-1) correct = correct + 1
+        enddo
+        do i=22, 24
+            tested = tested + 1
+            pos = search_line(spline,i)
+            if (pos.eq.-1) correct = correct + 1
+        enddo
+        ! The 4th term must be 21
+        tested = tested + 1
+        pos = search_line(spline, 21)
+        if (pos.eq.4) correct = correct + 1
+        tested = tested + 1
+        if (dabs(spline%lvalue(pos)-21.0_spdp).lt.tol) correct = correct + 1
+        ! The 5th term must be 25
+        tested = tested + 1
+        pos = search_line(spline, 25)
+        if (pos.eq.5) correct = correct + 1
+        tested = tested + 1
+        if (dabs(spline%lvalue(pos)-25.0_spdp).lt.tol) correct = correct + 1
+        ! The 6th term must be 27
+        tested = tested + 1
+        pos = search_line(spline, 27)
+        if (pos.eq.6) correct = correct + 1
+        tested = tested + 1
+        if (dabs(spline%lvalue(pos)-27.0_spdp).lt.tol) correct = correct + 1
+        ! 26 is not in the line
+        tested = tested + 1
+        pos = search_line(spline, 26)
+        if (pos.eq.-1) correct = correct + 1
+        ! 28 and more are not in the line 
+        do i=28, 31
+            tested = tested + 1
+            pos = search_line(spline,i)
+            if (pos.eq.-1) correct = correct + 1
+        enddo
+ 
+ 
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
-
     end subroutine test_search_line
 
     subroutine perform_all_dev_tests()
