@@ -407,21 +407,21 @@ module sparseset
     ! This version used sorted_indexes; the used approach is much slower
     ! than the new version, that uses sort_indexes_and_values (keeping
     ! the old version here, for now)
-    subroutine assemble_sparse_line_old_version(spline)
+    subroutine assemble_sparse_line_old_version(sp_line)
         implicit none
-        type(sparse_line), intent(inout):: spline
-        integer(spip), dimension(spline%lcount):: indexes,  ind
-        real(spdp), dimension(spline%lcount):: values
+        type(sparse_line), intent(inout):: sp_line
+        integer(spip), dimension(sp_line%lcount):: indexes,  ind
+        real(spdp), dimension(sp_line%lcount):: values
         integer(spip):: i, pos
-        ind = sorted_indexes(spline%lindex(1:spline%lcount))
+        ind = sorted_indexes(sp_line%lindex(1:sp_line%lcount))
         ! Copying indexes in ascending order (and respective values)
-        do i = 1, spline%lcount
-            indexes(i) = spline%lindex(ind(i))
-            values(i) = spline%lvalue(ind(i))
+        do i = 1, sp_line%lcount
+            indexes(i) = sp_line%lindex(ind(i))
+            values(i) = sp_line%lvalue(ind(i))
         enddo
         ! Summing equal terms
         pos = 1
-        do i = 2, spline%lcount
+        do i = 2, sp_line%lcount
             if (indexes(i).eq.indexes(pos)) then
                 values(pos) = values(pos) + values(i)
             else
@@ -430,10 +430,10 @@ module sparseset
                 values(pos) = values(i)
             endif
         enddo
-        spline%lindex(1:pos) = indexes(1:pos)
-        spline%lvalue(1:pos) = values(1:pos)
-        spline%lcount = pos
-        spline%assembled = .true.
+        sp_line%lindex(1:pos) = indexes(1:pos)
+        sp_line%lvalue(1:pos) = values(1:pos)
+        sp_line%lcount = pos
+        sp_line%assembled = .true.
     end subroutine assemble_sparse_line_old_version
 
     subroutine sort_indexes_and_values(indexes, values, length, stat)
@@ -556,68 +556,68 @@ module sparseset
         enddo ! end of outer loop
     end subroutine sort_indexes_and_values
 
-    subroutine assemble_sparse_line(spline)
+    subroutine assemble_sparse_line(sp_line)
         implicit none
-        type(sparse_line), intent(inout):: spline
+        type(sparse_line), intent(inout):: sp_line
         integer(spip)::i, pos
-        call sort_indexes_and_values(spline%lindex(1:spline%lcount),&
-             spline%lvalue(1:spline%lcount), spline%lcount)
+        call sort_indexes_and_values(sp_line%lindex(1:sp_line%lcount),&
+             sp_line%lvalue(1:sp_line%lcount), sp_line%lcount)
         pos = 1
-        do i = 2, spline%lcount
-            if (spline%lindex(i).eq.spline%lindex(pos)) then
-                spline%lvalue(pos) = spline%lvalue(pos) + spline%lvalue(i)
+        do i = 2, sp_line%lcount
+            if (sp_line%lindex(i).eq.sp_line%lindex(pos)) then
+                sp_line%lvalue(pos) = sp_line%lvalue(pos) + sp_line%lvalue(i)
             else
                 pos = pos + 1
-                spline%lindex(pos) = spline%lindex(i)
-                spline%lvalue(pos) = spline%lvalue(i)
+                sp_line%lindex(pos) = sp_line%lindex(i)
+                sp_line%lvalue(pos) = sp_line%lvalue(i)
             endif
         enddo
-        spline%lcount = pos
-        spline%assembled = .true.
+        sp_line%lcount = pos
+        sp_line%assembled = .true.
     end subroutine assemble_sparse_line
 
     ! If index is found, returns its position in line;
     ! if not, returns -1.
-    function search_line(spline, ind) result(pos)
+    function search_line(sp_line, ind) result(pos)
         implicit none
-        type(sparse_line), intent(inout):: spline
+        type(sparse_line), intent(inout):: sp_line
         integer(spip), intent(in):: ind
         integer(spip):: pos
         integer(spip):: ib, ie, im !b -> begin; e -> end; m -> middle
 
-        if (spline%lcount.ne.0) then
+        if (sp_line%lcount.ne.0) then
             ! Sparse line must be assembled (if it is not, assemble it)
-            if (.not.spline%assembled) call assemble_sparse_line(spline)
+            if (.not.sp_line%assembled) call assemble_sparse_line(sp_line)
             ib = 1
-            ie = spline%lcount
-            if ((spline%lindex(ib).gt.ind).or.(spline%lindex(ie).lt.ind)) then
+            ie = sp_line%lcount
+            if ((sp_line%lindex(ib).gt.ind).or.(sp_line%lindex(ie).lt.ind)) then
                 pos = -1
                 return
             endif
-            if (spline%lindex(ib).eq.ind) then
+            if (sp_line%lindex(ib).eq.ind) then
                 pos = ib
                 return
             endif
-            if (spline%lindex(ie).eq.ind) then
+            if (sp_line%lindex(ie).eq.ind) then
                 pos = ie
                 return
             endif
 
             do while ((ie - ib).gt.1)
-                if (spline%lindex(ib).eq.ind) then
+                if (sp_line%lindex(ib).eq.ind) then
                     pos = ib
                     return
                 endif
-                if (spline%lindex(ie).eq.ind) then
+                if (sp_line%lindex(ie).eq.ind) then
                     pos = ie
                     return
                 endif
                 im = ib + (ie - ib) / 2
-                if (spline%lindex(im).eq.ind) then
+                if (sp_line%lindex(im).eq.ind) then
                     pos = im
                     return
                 endif
-                if (ind.lt.spline%lindex(im)) then
+                if (ind.lt.sp_line%lindex(im)) then
                     ie = im
                 else
                     ib = im
