@@ -632,5 +632,20 @@ module sparseset
         return
     end function search_line
 
+    subroutine sparse_line_to_array(sp_line, array)
+        implicit none
+        type(sparse_line), intent(in):: sp_line
+        real(spdp), dimension(:), allocatable, intent(inout):: array
+        integer(spip):: i
+        if (size(array).ne.sp_line%length) then
+           deallocate(array)
+           allocate(array(sp_line%length))
+        endif
+        array = 0.0_spdp
+        do i=1,sp_line%lcount
+            array(sp_line%lindex(i)) = sp_line%lvalue(i)
+        enddo
+    end subroutine sparse_line_to_array
+
 end module sparseset
 
