@@ -643,7 +643,8 @@ module sparseset
         endif
         array = 0.0_spdp
         do i=1,sp_line%lcount
-            array(sp_line%lindex(i)) = sp_line%lvalue(i)
+            array(sp_line%lindex(i)) = array(sp_line%lindex(i)) + & 
+            sp_line%lvalue(i)
         enddo
     end subroutine sparse_line_to_array
 
