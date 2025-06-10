@@ -515,6 +515,20 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_search_line
 
+    subroutine test_sparse_line_to_array()
+        implicit none
+        type(sparse_line)::sp_line
+        real(spdp), dimension(:), allocatable:: arr, expected
+        integer(spip)::err_stat, tested, correct
+        tested = 0; correct = 0
+        write(*,"(a)",advance="no")"Testing sparse_line_to_array:"
+        tested = tested + 1
+        call allocate_sparse_line(sp_line, 20, 10, err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
+    end subroutine test_sparse_line_to_array
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
@@ -524,6 +538,7 @@ contains
         call test_quicksort()
         call test_assemble_line()
         call test_search_line()
+        call test_sparse_line_to_array()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
