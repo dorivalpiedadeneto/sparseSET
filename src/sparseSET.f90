@@ -638,7 +638,7 @@ module sparseset
         real(spdp), dimension(:), allocatable, intent(inout):: array
         integer(spip):: i
         if (size(array).ne.sp_line%length) then
-           deallocate(array)
+           if (allocated(array)) deallocate(array)
            allocate(array(sp_line%length))
         endif
         array = 0.0_spdp
