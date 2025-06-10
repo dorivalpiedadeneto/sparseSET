@@ -520,11 +520,61 @@ contains
         type(sparse_line)::sp_line
         real(spdp), dimension(:), allocatable:: arr, expected
         integer(spip)::err_stat, tested, correct
+        real(spdp)::tol=1.0e-8_spdp
         tested = 0; correct = 0
         write(*,"(a)",advance="no")"Testing sparse_line_to_array:"
         tested = tested + 1
         call allocate_sparse_line(sp_line, 20, 10, err_stat)
         if (err_stat.eq.0) correct = correct + 1
+        ! Testing for  a 'unassebled' sparse_line
+        call push_terms_to_line(sp_line,(/2, 5, 3/),(/2.0_spdp, -5.0_spdp, &
+        3.0_spdp/))
+        call sparse_line_to_array(sp_line, arr)
+        allocate(expected(10)); expected = 0.0_spdp
+        expected(2) = 2.0_spdp; expected(3) = 3.0_spdp; expected(5) = -5.0_spdp
+        tested = tested + 1
+        if (all(dabs(arr-expected).lt.tol)) correct = correct + 1
+        ! Testing if the result is correct (even if the line is not assembled)
+        call push_terms_to_line(sp_line,(/2, 5, 3/),(/2.0_spdp, -5.0_spdp, &
+        3.0_spdp/))
+        call push_terms_to_line(sp_line,(/2, 5, 3/),(/2.0_spdp, -5.0_spdp, &
+        3.0_spdp/))
+        call push_terms_to_line(sp_line,(/2, 5, 3/),(/2.0_spdp, -5.0_spdp, &
+        3.0_spdp/))
+        expected = 4 * expected
+        call sparse_line_to_array(sp_line, arr)
+        tested = tested + 1
+        if (all(dabs(arr-expected).lt.tol)) correct = correct + 1
+        ! More terms...
+        call push_terms_to_line(sp_line,(/1, 5, 8/),(/-1.0_spdp, -5.0_spdp, &
+        8.8_spdp/))
+        expected(1) = -1.0_spdp; expected(5) = expected(5) - 5.0_spdp
+        expected(8) = 8.8_spdp
+        call sparse_line_to_array(sp_line, arr)
+        tested = tested + 1
+        if (all(dabs(arr-expected).lt.tol)) correct = correct + 1
+        ! Assembled must return the same result!
+        call assemble_sparse_line(sp_line)
+        call sparse_line_to_array(sp_line, arr)
+        tested = tested + 1
+        if (all(dabs(arr-expected).lt.tol)) correct = correct + 1
+        ! Now, testing if changing the array size it still work correctly
+        call deallocate_sparse_line(sp_line)
+        call allocate_sparse_line(sp_line, 20, 100, err_stat)
+        deallocate(expected)
+        allocate(expected(100))
+        expected = 0.0_spdp
+        call push_terms_to_line(sp_line,(/8, 12, 33, 78, 99/),(/1.0_spdp,&
+        1.2_spdp, -3.3e-2_spdp, 7.8e3_spdp, 9.99_spdp/))
+        expected(8) = 1.0_spdp; expected(12) = 1.2_spdp
+        expected(33) = -3.3e-2_spdp; expected(78) = 7.8e3_spdp
+        expected(99) = 9.99_spdp
+        call sparse_line_to_array(sp_line, arr)
+        tested = tested + 1
+        if (all(dabs(arr-expected).lt.tol)) correct = correct + 1
+        call assemble_sparse_line(sp_line)
+        tested = tested + 1
+        if (all(dabs(arr-expected).lt.tol)) correct = correct + 1
 
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_sparse_line_to_array
