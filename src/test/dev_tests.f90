@@ -579,6 +579,21 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_sparse_line_to_array
 
+    subroutine test_array_to_sparse_line()
+        implicit none
+        type(sparse_line):: sp_line
+        real(spdp), dimension(:), allocatable:: arr
+        allocate(arr(10))
+        arr = 0.0_spdp
+        arr(1:10:2) = 1.0_spdp
+        call array_to_sparse_line(arr, sp_line)
+        write(*,*)'lcount->',sp_line%lcount
+        write(*,*)'lindex->',sp_line%lindex(1:10)
+        write(*,*)'lvalue->',sp_line%lvalue(1:10)
+        write(*,*)'assembled->',sp_line%assembled
+        write(*,*)'length->',sp_line%length
+    end subroutine test_array_to_sparse_line
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
@@ -589,6 +604,7 @@ contains
         call test_assemble_line()
         call test_search_line()
         call test_sparse_line_to_array()
+        call test_array_to_sparse_line()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
