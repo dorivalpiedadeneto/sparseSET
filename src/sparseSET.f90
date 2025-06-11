@@ -642,11 +642,47 @@ module sparseset
            allocate(array(sp_line%length))
         endif
         array = 0.0_spdp
-        do i=1,sp_line%lcount
+        do i=1, sp_line%lcount
             array(sp_line%lindex(i)) = array(sp_line%lindex(i)) + & 
             sp_line%lvalue(i)
         enddo
     end subroutine sparse_line_to_array
+
+    subroutine array_to_sparse_line(array, sp_line, tolerance)
+        implicit none
+        real(spdp), dimension(:), intent(in):: array
+        type(sparse_line), intent(inout):: sp_line
+        real(spdp), optional, intent(in):: tolerance
+        real(spdp):: tol
+        integer(spip):: i, length, lsize, lsze, cnt
+        if (present(tolerance)) then
+            tol = tolerance
+        else
+            tol = 1.0e-8_spdp
+        endif
+        length = size(array)
+        lsize = count((dabs(array).gt.tol), dim = 1, kind = spip)
+        write(*,*)length
+        write(*,*)lsize
+        if (sp_line%lsize.lt.lsize) then
+            call deallocate_sparse_line(sp_line)
+            ! An 'heuristic' for defininf the new lsize value
+            lsze = (lsize / 50 + 1) * 50
+            write(*,*)'lsze',lsze
+            call allocate_sparse_line(sp_line, lsze, length)
+        endif
+        cnt = 0
+        do i = 1, length
+            if (dabs(array(i)).gt.tol) then
+                cnt = cnt + 1
+                sp_line%lindex(cnt) = i
+                sp_line%lvalue(cnt) = array(i)
+            endif
+        enddo
+        sp_line%lcount = cnt
+        sp_line%length = length
+        sp_line%assembled = .true.
+    end subroutine array_to_sparse_line
 
 end module sparseset
 
