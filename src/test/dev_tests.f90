@@ -583,15 +583,29 @@ contains
         implicit none
         type(sparse_line):: sp_line
         real(spdp), dimension(:), allocatable:: arr
+        real(spdp)::tol
+        integer(spdp)::tested, correct
         allocate(arr(10))
         arr = 0.0_spdp
         arr(1:10:2) = 1.0_spdp
         call array_to_sparse_line(arr, sp_line)
-        write(*,*)'lcount->',sp_line%lcount
-        write(*,*)'lindex->',sp_line%lindex(1:10)
-        write(*,*)'lvalue->',sp_line%lvalue(1:10)
-        write(*,*)'assembled->',sp_line%assembled
-        write(*,*)'length->',sp_line%length
+        write(*,"(a)",advance="no")"Testing array_to_sparse_line:"
+        tested = 0; correct = 0
+        ! Basic tests
+        tested = tested + 1
+        if (sp_line%lcount.eq.5) correct = correct + 1
+        tested = tested + 1
+        if (all(sp_line%lindex(1:5).eq.(/1,3,5,7,9/))) correct = correct + 1
+        tested = tested + 1
+        tol = 1.0e-8_spdp
+        if (all(dabs(sp_line%lvalue(1:5)-1.0_spdp).lt.tol))&
+            correct = correct+ 1
+        tested = tested + 1
+        if (sp_line%assembled.eqv..true.) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%length.eq.10) correct = correct + 1
+
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_array_to_sparse_line
 
     subroutine perform_all_dev_tests()
