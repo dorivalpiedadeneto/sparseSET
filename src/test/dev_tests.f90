@@ -613,14 +613,32 @@ contains
         tested = tested + 1
         if (all(sp_line%lindex(1:5).eq.(/1,3,5,7,9/))) correct = correct + 1
         tested = tested + 1
-        tol = 1.0e-8_spdp
         if (all(dabs(sp_line%lvalue(1:5)-1.0_spdp).lt.tol))&
             correct = correct+ 1
         tested = tested + 1
         if (sp_line%assembled.eqv..true.) correct = correct + 1
         tested = tested + 1
         if (sp_line%length.eq.10) correct = correct + 1
- 
+        ! Still testing tolerance
+        arr = 1.0e-7_spdp
+        arr(1:10:2) = 1.0_spdp
+        call array_to_sparse_line(arr, sp_line, tol)
+        tested = tested + 1
+        if (sp_line%lcount.eq.10) correct = correct + 1
+        tested = tested + 1
+        if (all(sp_line%lindex(1:10).eq.(/1,2,3,4,5,6,7,8,9,10/)))&
+            correct = correct + 1
+        tested = tested + 1
+        if (all(dabs(sp_line%lvalue(1:10:2)-1.0_spdp).lt.tol))&
+            correct = correct+ 1
+        tested = tested + 1
+        if (all(dabs(sp_line%lvalue(2:10:2)-1.0e-7_spdp).lt.tol**2))&
+            correct = correct+ 1
+        tested = tested + 1
+        if (sp_line%assembled.eqv..true.) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%length.eq.10) correct = correct + 1
+        
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_array_to_sparse_line
 
