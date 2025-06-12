@@ -662,13 +662,10 @@ module sparseset
         endif
         length = size(array)
         lsize = count((dabs(array).gt.tol), dim = 1, kind = spip)
-        write(*,*)length
-        write(*,*)lsize
         if (sp_line%lsize.lt.lsize) then
             call deallocate_sparse_line(sp_line)
             ! An 'heuristic' for defininf the new lsize value
             lsze = (lsize / 50 + 1) * 50
-            write(*,*)'lsze',lsze
             call allocate_sparse_line(sp_line, lsze, length)
         endif
         cnt = 0
