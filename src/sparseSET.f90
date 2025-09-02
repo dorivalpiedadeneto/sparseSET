@@ -16,6 +16,13 @@ module sparseset
     !  ip 'stands' for integer precision, dp 'stands' for double precision of
     !  floating point numbers
 
+    ! Default values
+    integer(spip):: default_isize = 100
+    character(3):: default_mtype = 'row'
+    character(5):: default_storage = 'full'
+    integer(spip), dimension(6):: default_resize_policy = (/2,3,4,8,16,0/)
+    ! End of default values
+
     ! Remark: we are using types and 'structured' programming instead of OOP
     ! (so that it can be used in older compilers, that don't support OOP)
 
@@ -680,6 +687,95 @@ module sparseset
         sp_line%length = length
         sp_line%assembled = .true.
     end subroutine array_to_sparse_line
+
+    ! Sparse Matrix Subroutines
+
+    subroutine allocate_sparse_matrix(sp_matrix, nrows, ncols, isize, &
+                mtype, storage, resize_policy, stat)
+        implicit none
+        type(sparse_matrix), intent(inout)::sp_matrix
+        integer(spip), intent(in)::nrows, ncols
+        integer(spip), optional, intent(in)::isize
+        character(3), optional, intent(in)::mtype
+        character(5), optional, intent(in)::storage
+        integer(spip), optional, dimension(:), intent(in):: resize_policy
+        integer(spip), optional, intent(out):: stat
+        ! Local variables
+        integer(spip)::i, nlines, length
+        ! Testing values if stat is present (else ignore and code may crash)
+        if (present(stat)) then
+            stat = 0
+            if ((nrows.le.0).or.(ncols.le.0)) then
+                stat = 1
+                return
+            else
+                sp_matrix%nrows = nrows
+                sp_matrix%ncols = ncols
+            endif
+            if (present(isize)) then
+                if (isize.le.0) then
+                    stat = 1
+                    return
+                else
+                    sp_matrix%isize = isize
+                endif
+            else
+                !Default value for isize
+                sp_matrix%isize = default_isize
+            endif
+            if (present(mtype)) then
+                if (.not.((mtype.eq.'col').or.(mtype.eq.'row'))) then
+                    stat = 1
+                    return
+                else
+                    sp_matrix%mtype = mtype
+                endif
+            else
+                sp_matrix%mtype = default_mtype
+            endif
+            if (present(storage)) then
+                if (.not.(storage.eq.'upper').or.(storage.eq.'lower')&
+                    .or.(storage.eq.'full')) then
+                    stat = 1
+                    return
+                else
+                    sp_matrix%storage = default_storage
+                endif
+            else
+                sp_matrix%storage = default_storage
+            endif
+        endif
+        if (allocated(sp_matrix%line)) then
+            do i = 1, size(sp_matrix%line)
+                call deallocate_sparse_line(sp_matrix%line(i))
+            enddo
+            deallocate(sp_matrix%line)
+        endif
+        if (allocated(sp_matrix%resize_policy)) then
+            deallocate(sp_matrix%resize_policy)
+        endif
+        ! Allocating lines and resize_policy
+        if (present(resize_policy)) then
+            allocate(sp_matrix%resize_policy(size(resize_policy)))
+            sp_matrix%resize_policy = resize_policy
+        else
+            allocate(sp_matrix%resize_policy(size(default_resize_policy)))
+            sp_matrix%resize_policy = default_resize_policy
+        endif
+        if (sp_matrix%mtype.eq.'row') then
+            nlines = nrows
+            length = ncols
+        else
+            nlines = ncols
+            length = nrows
+        endif
+        allocate(sp_matrix%line(nlines))
+        do i = 1, nlines
+            call allocate_sparse_line(sp_matrix%line(i), &
+                 line_size=sp_matrix%isize, length=length)
+        enddo
+
+    end subroutine allocate_sparse_matrix
 
 end module sparseset
 
