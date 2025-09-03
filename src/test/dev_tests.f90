@@ -642,6 +642,89 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_array_to_sparse_line
 
+    subroutine test_allocate_deallocate_sparse_matrix()
+        implicit none
+        type(sparse_matrix):: sp_matrix
+        integer::tested = 0, correct = 0, err_stat
+        write(*,"(a)",advance="no")"Testing allocate_sparse_matrix:"
+        ! Testing if subroutine correctly identifies bad nrows and ncols values
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = -1, ncols = 1,&
+        stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 1, ncols = -1,&
+        stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = -1, ncols = -1,&
+        stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 10, ncols = 10,&
+        isize = -1, stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 10, ncols = 10,&
+        mtype='cow', stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 10, ncols = 10,&
+        mtype='rol', stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 10, ncols = 10,&
+        storage='uppeR', stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 10, ncols = 10,&
+        storage='lowEr', stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 10, ncols = 10,&
+        storage='FulL', stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        ! Test default values
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 10, ncols = 20,&
+        stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%isize.eq.default_isize) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%mtype.eq.default_mtype) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%nlines.eq.10) correct = correct + 1
+        tested = tested + 1
+        if (allocated(sp_matrix%line)) correct = correct + 1
+        tested = tested + 1
+        if (size(sp_matrix%line).eq.10) correct = correct + 1
+        ! Testing if first line has the right length
+        tested = tested + 1
+        if (sp_matrix%line(1)%length.eq.20) correct = correct + 1
+        tested = tested + 1
+        if (all(sp_matrix%resize_policy.eq.default_resize_policy)) &
+            correct = correct + 1
+        !Same matrix, col mtype
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = 10, ncols = 20,&
+        mtype='col',stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%mtype.eq.'col') correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%nlines.eq.20) correct = correct + 1
+        tested = tested + 1
+        if (allocated(sp_matrix%line)) correct = correct + 1
+        tested = tested + 1
+        if (size(sp_matrix%line).eq.20) correct = correct + 1
+        ! Testing if first line has the right length
+        tested = tested + 1
+        if (sp_matrix%line(1)%length.eq.10) correct = correct + 1
+
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
+    end subroutine test_allocate_deallocate_sparse_matrix
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
@@ -653,6 +736,7 @@ contains
         call test_search_line()
         call test_sparse_line_to_array()
         call test_array_to_sparse_line()
+        call test_allocate_deallocate_sparse_matrix()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
