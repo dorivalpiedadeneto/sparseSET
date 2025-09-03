@@ -721,6 +721,22 @@ contains
         ! Testing if first line has the right length
         tested = tested + 1
         if (sp_matrix%line(1)%length.eq.10) correct = correct + 1
+        ! Testing deallocate
+        call deallocate_sparse_matrix(sp_matrix)
+        tested = tested + 1
+        if (sp_matrix%nrows.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%ncols.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%nlines.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%mtype.eq."") correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%storage.eq."") correct = correct + 1
+        tested = tested + 1
+        if (.not.allocated(sp_matrix%resize_policy)) correct = correct + 1
+        tested = tested + 1
+        if (.not.allocated(sp_matrix%line)) correct = correct + 1
 
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_allocate_deallocate_sparse_matrix
