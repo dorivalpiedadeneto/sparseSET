@@ -774,8 +774,29 @@ module sparseset
             call allocate_sparse_line(sp_matrix%line(i), &
                  line_size=sp_matrix%isize, length=length)
         enddo
-
+        sp_matrix%nlines = nlines
     end subroutine allocate_sparse_matrix
+
+    subroutine deallocate_sparse_matrix(sp_matrix)
+        implicit none
+        type(sparse_matrix), intent(inout)::sp_matrix
+        integer(spip)::i
+        sp_matrix%nrows = 0
+        sp_matrix%ncols = 0
+        sp_matrix%isize = 0
+        sp_matrix%mtype = ""
+        sp_matrix%storage = ""
+        if (allocated(sp_matrix%resize_policy)) then
+            deallocate(sp_matrix%resize_policy)
+        endif
+        if (allocated(sp_matrix%line)) then
+            do i = 1, size(sp_matrix%line)
+                call deallocate_sparse_line(sp_matrix%line(i))
+            enddo
+            deallocate(sp_matrix%line)
+        endif
+        sp_matrix%nlines = 0
+    end subroutine deallocate_sparse_matrix
 
 end module sparseset
 
