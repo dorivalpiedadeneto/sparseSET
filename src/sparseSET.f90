@@ -803,5 +803,38 @@ module sparseset
         sp_matrix%assembled = .false.
     end subroutine deallocate_sparse_matrix
 
+!    There are some things that need to be defined before implementing this one
+!   subroutine push_matrix_to_sparse_matrix(sp_matrix, matrix, indexes, stat)
+!       implicit none
+!       type(sparse_matrix), intent(inout):: sp_matrix
+!       real(spdp), dimension(:,:), intent(in):: matrix
+!       integer(ipdp), dimension(:), intent(in):: indexes
+!       integer(ipdp), optional, intent(out):: stat
+!       ! Local variable
+!       integer(ipdp)::i, j, msize
+!       msize = size(indexes)
+!       if (sp_matrix%mtype.eq.'row') then
+!           if (sp_matrix%storage.eq.'full') then
+!               do i=1,msize
+!                   call push_terms_to_line(sp_matrix%line(i), matrix(i,:), &
+!                   indexes(:), stat)
+!               enddo
+!           elseif (sp_matrix%storage.eq.'upper') then
+
+!           elseif (sp_matrix%storage.eq.'lower') then
+
+!           endif
+!       elseif (sp_matrix%mtype.eq.'col') then
+!           if (sp_matrix%storage.eq.'full') then
+
+!           elseif (sp_matrix%storage.eq.'upper') then
+
+!           elseif (sp_matrix%storage.eq.'lower') then
+
+!           endif
+!       endif
+
+    end subroutine push_matrix_to_sparse_matrix
+
 end module sparseset
 
