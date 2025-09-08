@@ -75,6 +75,7 @@ module sparseset
         integer(spip)::nrows
         integer(spip)::ncols
         type(sparse_line), dimension(:), allocatable::line
+        logical::assembled=.false.
     end type sparse_matrix
 
     ! About sparse_matrix type
@@ -102,6 +103,7 @@ module sparseset
     ! nrows - number of rows in the sparse matrix
     ! ncols - number of columns in the sparse matrix
     ! line - an array of lines
+    ! assembled - .true. if all lines are assembled
 
     ! A note on the resize policy:
     ! Initially resize_policy was a fixed array with 16 positions:
@@ -115,6 +117,7 @@ module sparseset
     ! (\2, 3, 4, 8, 16, 0\)
     ! (in this case for rp >= 6, always try to assemble; if the available space
     ! is not sufficient, quit the program)
+
 
     type CSC
         integer(spip)::msize
@@ -775,6 +778,7 @@ module sparseset
                  line_size=sp_matrix%isize, length=length)
         enddo
         sp_matrix%nlines = nlines
+        sp_matrix%assembled = .false.
     end subroutine allocate_sparse_matrix
 
     subroutine deallocate_sparse_matrix(sp_matrix)
@@ -796,6 +800,7 @@ module sparseset
             deallocate(sp_matrix%line)
         endif
         sp_matrix%nlines = 0
+        sp_matrix%assembled = .false.
     end subroutine deallocate_sparse_matrix
 
 end module sparseset
