@@ -803,6 +803,76 @@ module sparseset
         sp_matrix%assembled = .false.
     end subroutine deallocate_sparse_matrix
 
+    subroutine resize_sparse_line(sp_line, resize_policy, isize, as, stat)
+        implicit none
+        type(sparse_line), intent(inout):: sp_line
+        integer(spip), dimension(:), intent(in):: resize_policy
+        integer(spip), intent(in):: isize
+        integer(spip), optional, intent(out):: as ! as - available space
+        integer(spip), optional, intent(out):: stat
+        ! Local variables
+        integer(spip), dimension(:), allocatable:: inds
+        real(spdp), dimension(:), allocatable:: vals
+        integer(spip):: policy, size_, lcount
+        if (sp_line%rpstage.eq.size(resize_policy)) then
+            ! Already in the last possible size
+            if (resize_policy(sp_line%rpstage).eq.0) then
+                call assemble_sparse_line(sp_line)
+                if (present(as)) then
+                    as = sp_line%lsize-sp_line%lcount
+                endif
+                if (present(stat)) stat = 0
+                return
+            else
+                if (present(stat)) then
+                    stat = 1
+                    return
+                else
+                    write(*,*)"Can't resize sparse line!"
+                    write(*,*)"Review the initial size or the resize policy!"
+                    stop
+                endif
+            endif
+        else
+            sp_line%rpstage = sp_line%rpstage + 1
+            policy = resize_policy(sp_line%rpstage)
+            if (policy.eq.0) then
+                ! Just assemble
+                call assemble_sparse_line(sp_line)
+                if (present(as)) then
+                    as = sp_line%lsize-sp_line%lcount
+                endif
+                if (present(stat)) stat = 0
+                return
+            endif
+            if (policy.lt.0) then
+                ! New size is related to current size
+                size_ = sp_line%lsize * abs(policy)
+            else if (policy.gt.0) then
+                ! New size is related to initial size
+                size_ = isize * policy
+            endif
+            lcount = sp_line%lcount
+            allocate(inds(lcount), vals(lcount))
+            ! Copy to inds and vals
+            inds = sp_line%lindex(1:lcount)
+            vals = sp_line%lvalue(1:lcount)
+            ! Allocate new  size in sp_line
+            deallocate(sp_line%lindex, sp_line%lvalue)
+            allocate(sp_line%lindex(size_), sp_line%lvalue(size_))
+            ! Copy back to sp_line
+            sp_line%lindex(1:lcount) = inds
+            sp_line%lvalue(1:lcount) = vals
+            sp_line%lsize = size_
+            deallocate(inds, vals)
+            if (present(as)) then
+                as = sp_line%lsize-sp_line%lcount
+            endif
+            if (present(stat)) stat = 0
+            return
+        endif
+    end subroutine resize_sparse_line
+
 !    There are some things that need to be defined before implementing this one
 !   subroutine push_matrix_to_sparse_matrix(sp_matrix, matrix, indexes, stat)
 !       implicit none
@@ -834,7 +904,7 @@ module sparseset
 !           endif
 !       endif
 
-    end subroutine push_matrix_to_sparse_matrix
+!    end subroutine push_matrix_to_sparse_matrix
 
 end module sparseset
 
