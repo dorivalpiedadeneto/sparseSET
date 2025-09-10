@@ -741,6 +741,101 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_allocate_deallocate_sparse_matrix
 
+    subroutine test_resize_sparse_line()
+        implicit none
+        type(sparse_line):: sp_line
+        integer(spip):: tested = 0, correct = 0, err_stat, as
+
+        ! Allocating and pushing terms
+        write(*,"(a)",advance="no")"Testing resize sparse line:"
+        ! Testing if line size was correctly set
+        tested = tested + 1
+        call allocate_sparse_line(sp_line, 10, 100)
+        call push_terms_to_line(sp_line,(/1, 2, 3, 4, 5, 6/),&
+        (/1.0_spdp, 2.0_spdp, 3.0_spdp, 4.0_spdp, 5.0_spdp, 6.0_spdp/),&
+        err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        call resize_sparse_line(sp_line,(/2, -2, 0/), 10, as, err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (as.eq.14) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%rpstage.eq.1) correct = correct + 1
+        tested = tested + 1
+        if (all(sp_line%lindex(1:6).eq.(/1, 2, 3, 4, 5, 6/))) then
+            correct = correct + 1
+        endif
+        tested = tested + 1
+        if (all(sp_line%lvalue(1:6).eq.(/1.0_spdp, 2.0_spdp, 3.0_spdp,&
+            4.0_spdp, 5.0_spdp, 6.0_spdp/))) then
+            correct = correct + 1
+        endif
+        tested = tested + 1
+        if (size(sp_line%lindex).eq.20) correct = correct + 1
+        tested = tested + 1
+        if (size(sp_line%lvalue).eq.20) correct = correct + 1
+        ! Pushing again
+        tested = tested + 1
+        call push_terms_to_line(sp_line,(/1, 2, 3, 4, 5, 6/),&
+        (/1.0_spdp, 2.0_spdp, 3.0_spdp, 4.0_spdp, 5.0_spdp, 6.0_spdp/),&
+        err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%lsize.eq.20) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%lcount.eq.12) correct = correct + 1
+        tested = tested + 1
+        if (available_space(sp_line).eq.8) correct = correct + 1
+        ! Resizing again (using current size as reference to resize)
+        tested = tested + 1
+        call resize_sparse_line(sp_line,(/2, -2, 0/), 10, as, err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (as.eq.28) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%lsize.eq.40) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%lcount.eq.12) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%rpstage.eq.2) correct = correct + 1
+        ! Now trying to resize (resize_policy defines assembling instead)
+        tested = tested + 1
+        call resize_sparse_line(sp_line,(/2, -2, 0/), 10, as, err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (as.eq.34) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%lsize.eq.40) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%lcount.eq.6) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%rpstage.eq.3) correct = correct + 1
+        tested = tested + 1
+        if (all(sp_line%lindex(1:6).eq.(/1, 2, 3, 4, 5, 6/))) then
+            correct = correct + 1
+        endif
+        tested = tested + 1
+        if (all(sp_line%lvalue(1:6).eq.(/2.0_spdp, 4.0_spdp, 6.0_spdp,&
+            8.0_spdp, 10.0_spdp, 12.0_spdp/))) then
+            correct = correct + 1
+        endif
+        ! Trying to resize again
+        call resize_sparse_line(sp_line,(/2, -2, 0/), 10, as, err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (as.eq.34) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%lsize.eq.40) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%lcount.eq.6) correct = correct + 1
+        tested = tested + 1
+        if (sp_line%rpstage.eq.3) correct = correct + 1
+        tested = tested + 1
+ 
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
+    end subroutine test_resize_sparse_line
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
@@ -753,6 +848,7 @@ contains
         call test_sparse_line_to_array()
         call test_array_to_sparse_line()
         call test_allocate_deallocate_sparse_matrix()
+        call test_resize_sparse_line()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
