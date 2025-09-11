@@ -890,15 +890,13 @@ module sparseset
                 stop
             endif
         endif
+        if (present(stat)) stat = 0
         do i=1, size(indexes)
             ind = indexes(i)
-            if (present(stat)) stat = 0
             if (necessary_size(i).gt.(sp_matrix%line(ind)%lsize -&
                 sp_matrix%line(ind)%lcount)) then
                 call resize_sparse_line(sp_matrix%line(ind), &
                 sp_matrix%resize_policy, sp_matrix%isize, as, stat)
-                print *, "stat=",stat
-                if (stat.ne.0) return
                 if (as.lt.necessary_size(i)) then
                     stat = 1
                     return
