@@ -873,6 +873,38 @@ module sparseset
         endif
     end subroutine resize_sparse_line
 
+    subroutine resize_sparse_matrix(sp_matrix, indexes, necessary_size, stat)
+        implicit none
+        type(sparse_matrix), intent(inout):: sp_matrix
+        integer(spip), dimension(:), intent(in):: indexes
+        integer(spip), dimension(:), intent(in):: necessary_size
+        integer(spip), optional, intent(out):: stat
+        ! Local variables
+        integer(spip):: i, ind, as
+        if (size(necessary_size).ne.size(indexes)) then
+            if (present(stat)) then
+                stat = 1
+                return
+            else
+                write(*,*)"Invalid argument to resize sparse matrix line!"
+                stop
+            endif
+        endif
+        do i=1, size(indexes)
+            ind = indexes(i)
+            if (necessary_size(i).gt.(sp_matrix%line(ind)%lsize -&
+                sp_matrix%line(ind)%lcount)) then
+                call resize_sparse_line(sp_matrix%line(ind), &
+                sp_matrix%resize_policy, sp_matrix%isize, as, stat)
+                if (stat.ne.0) return
+                if (as.lt.necessary_size(i)) then
+                    stat = 1
+                    return
+                endif
+            endif
+        enddo
+    end subroutine resize_sparse_matrix
+
 !    There are some things that need to be defined before implementing this one
 !   subroutine push_matrix_to_sparse_matrix(sp_matrix, matrix, indexes, stat)
 !       implicit none
