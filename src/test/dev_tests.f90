@@ -836,6 +836,102 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_resize_sparse_line
 
+    subroutine test_resize_sparse_matrix()
+        implicit none
+        type(sparse_matrix)::sp_matrix
+        integer(spip):: tested = 0, correct = 0, err_stat
+        integer(spip):: nr = 10, nc = 20, is = 5
+        integer(spip):: i
+
+        write(*,"(a)",advance="no")"Testing resize sparse line:"
+        tested = tested + 1
+        call allocate_sparse_matrix(sp_matrix, nrows = nr,&
+        ncols = nc, isize = is, mtype = "row", storage = "full",&
+        resize_policy = (/2, 4, 0/), stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        do i=1, nr
+            tested = tested + 1
+            if (sp_matrix%line(i)%lsize.eq.is) correct = correct + 1
+            tested = tested + 1
+            if (sp_matrix%line(i)%length.eq.nc) correct = correct + 1
+        enddo
+        ! Test if invalid input is correctly identified
+        tested = tested + 1
+        call resize_sparse_matrix(sp_matrix, indexes = (/1, 2, 3/),&
+        necessary_size = (/2,2,2,2/), stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+        ! Test case in which no lines are resized
+        tested = tested + 1
+        call resize_sparse_matrix(sp_matrix, indexes = (/1, 2, 3/),&
+        necessary_size = (/2,2,2/), stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(1)%lsize.eq.is) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(2)%lsize.eq.is) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(3)%lsize.eq.is) correct = correct + 1
+        tested = tested + 1
+        call resize_sparse_matrix(sp_matrix, indexes = (/1, 2, 3/),&
+        necessary_size = (/2,6,2/), stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(1)%lsize.eq.is) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(2)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(3)%lsize.eq.is) correct = correct + 1
+        tested = tested + 1
+        call resize_sparse_matrix(sp_matrix, indexes = (/1, 2, 3/),&
+        necessary_size = (/6,6,6/), stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(1)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(2)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(3)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        call resize_sparse_matrix(sp_matrix, indexes = (/1, 2, 3/),&
+        necessary_size = (/6,10,6/), stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(1)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(2)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(3)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        call resize_sparse_matrix(sp_matrix, indexes = (/1, 2, 3/),&
+        necessary_size = (/6,11,6/), stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(1)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(2)%lsize.eq.(4*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(3)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        call resize_sparse_matrix(sp_matrix, indexes = (/1, 2, 3/),&
+        necessary_size = (/6,11,6/), stat = err_stat)
+        if (err_stat.eq.0) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(1)%lsize.eq.(2*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(2)%lsize.eq.(4*is)) correct = correct + 1
+        tested = tested + 1
+        if (sp_matrix%line(3)%lsize.eq.(2*is)) correct = correct + 1
+        ! Now let's test if it correctly identifies a fail in resize
+        tested = tested + 1
+        call resize_sparse_matrix(sp_matrix, indexes = (/1, 2, 3/),&
+        necessary_size = (/6,21,6/), stat = err_stat)
+        if (err_stat.ne.0) correct = correct + 1
+ 
+
+
+        write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
+    end subroutine test_resize_sparse_matrix
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
@@ -849,6 +945,7 @@ contains
         call test_array_to_sparse_line()
         call test_allocate_deallocate_sparse_matrix()
         call test_resize_sparse_line()
+        call test_resize_sparse_matrix()
     end subroutine perform_all_dev_tests
 
 end module dev_tests
