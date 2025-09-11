@@ -737,8 +737,8 @@ module sparseset
                 sp_matrix%mtype = default_mtype
             endif
             if (present(storage)) then
-                if (.not.(storage.eq.'upper').or.(storage.eq.'lower')&
-                    .or.(storage.eq.'full')) then
+                if (.not.((storage.eq.'upper').or.(storage.eq.'lower')&
+                    .or.(storage(1:4).eq.'full'))) then
                     stat = 1
                     return
                 else
