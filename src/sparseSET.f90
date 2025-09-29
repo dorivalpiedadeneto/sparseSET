@@ -742,7 +742,7 @@ module sparseset
                     stat = 1
                     return
                 else
-                    sp_matrix%storage = default_storage
+                    sp_matrix%storage = storage
                 endif
             else
                 sp_matrix%storage = default_storage
@@ -904,6 +904,55 @@ module sparseset
             endif
         enddo
     end subroutine resize_sparse_matrix
+
+    ! Testing this approach (to be used to avoid the necessary_size vector)
+    subroutine compute_necessary_size(sp_matrix, indexes)
+        implicit none
+        type(sparse_matrix), intent(in)::sp_matrix
+        integer(spip), dimension(:), intent(in):: indexes
+        !Local variables
+        integer(spip)::i, n, ns !ns - necessary size
+        ! Code is duplicated to avoid testing in each loop
+        n = size(indexes)
+        write(*,*)sp_matrix%storage
+        if (sp_matrix%storage(1:4).eq.'full') then
+            ! all lines demand n spaces
+            ns = n
+            do i = 1, n
+                write(*,'(x,i2,x)', advance='no') ns
+            enddo
+            write(*,*)
+        else if (sp_matrix%storage.eq."upper") then
+            write(*,*)"upper",sp_matrix%storage
+            if (sp_matrix%mtype.eq."row") then
+                do i = 1, n
+                    ns = n - i + 1
+                    write(*,'(x,i2,x)', advance='no') ns
+                enddo
+                write(*,*)
+            else ! mtype.eq."col"
+                do i = 1, n
+                    ns = i 
+                    write(*,'(x,i2,x)', advance='no') ns
+                enddo
+                write(*,*)
+            endif
+        else if (sp_matrix%storage.eq."lower") then
+            if (sp_matrix%mtype.eq."row") then
+                do i = 1, n
+                    ns = i 
+                    write(*,'(x,i2,x)', advance='no') ns
+                enddo
+                write(*,*)
+            else ! mtype.eq."col"
+                do i = 1, n
+                    ns = n - i + 1
+                    write(*,'(x,i2,x)', advance='no') ns
+                enddo
+                write(*,*)
+            endif
+        end if
+    end subroutine compute_necessary_size
 
 !    There are some things that need to be defined before implementing this one
 !   subroutine push_matrix_to_sparse_matrix(sp_matrix, matrix, indexes, stat)
