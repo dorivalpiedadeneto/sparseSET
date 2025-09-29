@@ -966,13 +966,13 @@ module sparseset
         implicit none
         type(sparse_matrix), intent(inout):: sp_matrix
         integer(spip), dimension(:), intent(in):: indexes
-        integer(spip), optional, intent(out):: stat
+        integer(spip), intent(out):: stat
         ! Local variables
         integer(spip):: i, ind, n, as, ns ! as- available size
                                           ! ns - necessary size
         ! Code is duplicated to avoid testing in each loop
         n = size(indexes)
-        if (present(stat)) stat = 0
+        stat = 0
         if (sp_matrix%storage(1:4).eq."full") then
             ns = n ! all lines demand n free spaces
             do i = 1, n
@@ -1006,7 +1006,7 @@ module sparseset
             else ! mtype.eq."col"
                 !ns = i
                  do i = 1, n
-                    ns = n - i + 1 ! ns - necessary size
+                    ns = i ! ns - necessary size
                     ind = indexes(i)
                     if (ns.gt.(sp_matrix%line(ind)%lsize - &
                     sp_matrix%line(ind)%lcount)) then
@@ -1023,7 +1023,7 @@ module sparseset
             if (sp_matrix%mtype.eq."row") then
                 !ns = i
                 do i = 1, n
-                    ns = n - i + 1 ! ns - necessary size
+                    ns = i ! ns - necessary size
                     ind = indexes(i)
                     if (ns.gt.(sp_matrix%line(ind)%lsize - &
                     sp_matrix%line(ind)%lcount)) then
