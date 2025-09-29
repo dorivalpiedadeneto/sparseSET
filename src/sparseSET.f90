@@ -954,6 +954,107 @@ module sparseset
         end if
     end subroutine compute_necessary_size
 
+    ! Before pushing terms, it is necessary to verify size and resize the sparse
+    ! matrix, if necessary. Initially it was planned to use the subroutine 
+    ! resize_sparse_matrix (see sub above) to deal with this, but the adopted
+    ! approach could be improved, so we tested another ideia in the 
+    ! compute_necessary_size sub (see subroutine above). So, the new improved
+    ! subroutine to perform this task is the one just bellow, named
+    ! resolve_sparse_matrix_size
+    
+    subroutine resolve_sparse_matrix_size(sp_matrix, indexes, stat)
+        implicit none
+        type(sparse_matrix), intent(inout):: sp_matrix
+        integer(spip), dimension(:), intent(in):: indexes
+        integer(spip), optional, intent(out):: stat
+        ! Local variables
+        integer(spip):: i, n, as, ns ! as- available size
+                                     ! ns - necessary size
+        ! Code is duplicated to avoid testing in each loop
+        n = size(indexes)
+        if (present(stat)) stat = 0
+        if (sp_matrix%storage(1:4).eq."full") then
+            ns = n ! all lines demand n free spaces
+            do i = 1, n
+                ind = indexes(i)
+                if (ns.gt.(sp_matrix%line(ind)%lsize - &
+                sp_matrix%line(ind)%lcount)) then
+                    call resize_sparse_line(sp_matrix%line(ind), &
+                    sp_matrix%resize_policy, sp_matrix%isize, as, stat)
+                    if (as.lt.necessary_size(i)) then
+                        stat = 1
+                        return
+                    endif
+                endif
+            enddo
+        else if (sp_matrix%storage.eq."upper") then
+            if (sp_matrix%mtype.eq."row") then
+                ! ns = n - i + 1
+                do i = 1, n
+                    ns = n - i + 1 ! ns - necessary size
+                    ind = indexes(i)
+                    if (ns.gt.(sp_matrix%line(ind)%lsize - &
+                    sp_matrix%line(ind)%lcount)) then
+                        call resize_sparse_line(sp_matrix%line(ind), &
+                        sp_matrix%resize_policy, sp_matrix%isize, as, stat)
+                        if (as.lt.necessary_size(i)) then
+                            stat = 1
+                            return
+                        endif
+                    endif
+                enddo
+            else ! mtype.eq."col"
+                !ns = i
+                 do i = 1, n
+                    ns = n - i + 1 ! ns - necessary size
+                    ind = indexes(i)
+                    if (ns.gt.(sp_matrix%line(ind)%lsize - &
+                    sp_matrix%line(ind)%lcount)) then
+                        call resize_sparse_line(sp_matrix%line(ind), &
+                        sp_matrix%resize_policy, sp_matrix%isize, as, stat)
+                        if (as.lt.necessary_size(i)) then
+                            stat = 1
+                            return
+                        endif
+                    endif
+                enddo
+            endif
+        else if (sp_matrix%storage.eq."lower") then
+            if (sp_matrix%mtype.eq."row") then
+                !ns = i
+                do i = 1, n
+                    ns = n - i + 1 ! ns - necessary size
+                    ind = indexes(i)
+                    if (ns.gt.(sp_matrix%line(ind)%lsize - &
+                    sp_matrix%line(ind)%lcount)) then
+                        call resize_sparse_line(sp_matrix%line(ind), &
+                        sp_matrix%resize_policy, sp_matrix%isize, as, stat)
+                        if (as.lt.necessary_size(i)) then
+                            stat = 1
+                            return
+                        endif
+                    endif
+                enddo
+            else ! mtype.eq."col"
+                ! ns = n - i + 1
+                do i = 1, n
+                    ns = n - i + 1 ! ns - necessary size
+                    ind = indexes(i)
+                    if (ns.gt.(sp_matrix%line(ind)%lsize - &
+                    sp_matrix%line(ind)%lcount)) then
+                        call resize_sparse_line(sp_matrix%line(ind), &
+                        sp_matrix%resize_policy, sp_matrix%isize, as, stat)
+                        if (as.lt.necessary_size(i)) then
+                            stat = 1
+                            return
+                        endif
+                    endif
+                enddo
+            endif
+        end if
+    end subroutine resolve_sparse_matrix_size
+
+
 !    There are some things that need to be defined before implementing this one
 !   subroutine push_matrix_to_sparse_matrix(sp_matrix, matrix, indexes, stat)
 !       implicit none
