@@ -968,8 +968,8 @@ module sparseset
         integer(spip), dimension(:), intent(in):: indexes
         integer(spip), optional, intent(out):: stat
         ! Local variables
-        integer(spip):: i, n, as, ns ! as- available size
-                                     ! ns - necessary size
+        integer(spip):: i, ind, n, as, ns ! as- available size
+                                          ! ns - necessary size
         ! Code is duplicated to avoid testing in each loop
         n = size(indexes)
         if (present(stat)) stat = 0
@@ -981,7 +981,7 @@ module sparseset
                 sp_matrix%line(ind)%lcount)) then
                     call resize_sparse_line(sp_matrix%line(ind), &
                     sp_matrix%resize_policy, sp_matrix%isize, as, stat)
-                    if (as.lt.necessary_size(i)) then
+                    if (as.lt.ns) then
                         stat = 1
                         return
                     endif
@@ -997,7 +997,7 @@ module sparseset
                     sp_matrix%line(ind)%lcount)) then
                         call resize_sparse_line(sp_matrix%line(ind), &
                         sp_matrix%resize_policy, sp_matrix%isize, as, stat)
-                        if (as.lt.necessary_size(i)) then
+                        if (as.lt.ns) then
                             stat = 1
                             return
                         endif
@@ -1012,7 +1012,7 @@ module sparseset
                     sp_matrix%line(ind)%lcount)) then
                         call resize_sparse_line(sp_matrix%line(ind), &
                         sp_matrix%resize_policy, sp_matrix%isize, as, stat)
-                        if (as.lt.necessary_size(i)) then
+                        if (as.lt.ns) then
                             stat = 1
                             return
                         endif
@@ -1029,7 +1029,7 @@ module sparseset
                     sp_matrix%line(ind)%lcount)) then
                         call resize_sparse_line(sp_matrix%line(ind), &
                         sp_matrix%resize_policy, sp_matrix%isize, as, stat)
-                        if (as.lt.necessary_size(i)) then
+                        if (as.lt.ns) then
                             stat = 1
                             return
                         endif
@@ -1044,7 +1044,7 @@ module sparseset
                     sp_matrix%line(ind)%lcount)) then
                         call resize_sparse_line(sp_matrix%line(ind), &
                         sp_matrix%resize_policy, sp_matrix%isize, as, stat)
-                        if (as.lt.necessary_size(i)) then
+                        if (as.lt.ns) then
                             stat = 1
                             return
                         endif
