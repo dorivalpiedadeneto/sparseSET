@@ -932,6 +932,18 @@ contains
         write(*,'(a,i2,a,i2,a)')" Passed [",correct,"/",tested,"]"
     end subroutine test_resize_sparse_matrix
 
+    subroutine test_compute_necessary_size()
+        implicit none
+        type(sparse_matrix):: sp_matrix
+        integer(spip):: err_stat
+        call allocate_sparse_matrix(sp_matrix, nrows = 100, ncols = 100, &
+        isize = 20, mtype = "row", storage = "lower", &
+        resize_policy = (/2, 4, 0/), stat = err_stat)
+        write(*,*)"ierr=",err_stat
+        call compute_necessary_size(sp_matrix, (/1,2,3,4,5/))
+
+    end subroutine test_compute_necessary_size
+
     subroutine perform_all_dev_tests()
         implicit none
         call test_allocate_deallocate_line()
@@ -946,6 +958,8 @@ contains
         call test_allocate_deallocate_sparse_matrix()
         call test_resize_sparse_line()
         call test_resize_sparse_matrix()
+!        call test_compute_necessary_size()
+
     end subroutine perform_all_dev_tests
 
 end module dev_tests
