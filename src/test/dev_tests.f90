@@ -843,7 +843,7 @@ contains
         integer(spip):: nr = 10, nc = 20, is = 5
         integer(spip):: i
 
-        write(*,"(a)",advance="no")"Testing resize sparse line:"
+        write(*,"(a)",advance="no")"Testing resize sparse matrix:"
         tested = tested + 1
         call allocate_sparse_matrix(sp_matrix, nrows = nr,&
         ncols = nc, isize = is, mtype = "row", storage = "full",&
